@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+﻿import { useState, type CSSProperties } from 'react'
 import type { RoleType } from '../domain/types'
 
 function clamp(value: number, min: number, max: number) {
@@ -12,22 +12,34 @@ function createDemoCredentials() {
   return formData
 }
 
+function getRoleChipLabel(role: RoleType) {
+  if (role === 'organizer') return '运营管理员'
+  if (role === 'staff') return '普通成员'
+  if (role === 'agency') return '执行负责人'
+  if (role === 'brand') return '品牌方'
+  return '系统管理员'
+}
+
 const capabilityItems = [
   {
     title: '实时监控',
     description: '多区域态势感知',
+    icon: 'monitor',
   },
   {
     title: '智能决策',
     description: 'AI 驱动建议推送',
+    icon: 'brain',
   },
   {
     title: '任务协同',
     description: '高效派发与执行',
+    icon: 'users',
   },
   {
     title: '复盘沉淀',
     description: '全链路审计分析',
+    icon: 'chart',
   },
 ] as const
 
@@ -38,148 +50,207 @@ export function LoginPage(props: {
 }) {
   const [selectedRole, setSelectedRole] = useState<RoleType>('organizer')
   const [showSandboxRoles, setShowSandboxRoles] = useState(false)
-  const [sceneTilt, setSceneTilt] = useState({ rotateX: -11, rotateY: 12, glowX: 72, glowY: 24 })
+  const [mapFocus, setMapFocus] = useState({ x: 62, y: 42 })
 
-  const mastheadStyle = {
-    '--login-tilt-x': `${sceneTilt.rotateX}deg`,
-    '--login-tilt-y': `${sceneTilt.rotateY}deg`,
-    '--login-glow-x': `${sceneTilt.glowX}%`,
-    '--login-glow-y': `${sceneTilt.glowY}%`,
+  const primaryRoleProfiles = props.roleProfiles.filter((profile) => profile.role === 'organizer' || profile.role === 'staff')
+  const availableRoleProfiles = primaryRoleProfiles.length >= 2 ? primaryRoleProfiles : props.roleProfiles.slice(0, 2)
+
+  const mapStyle = {
+    '--login-map-x': `${mapFocus.x}%`,
+    '--login-map-y': `${mapFocus.y}%`,
   } as CSSProperties
 
   return (
-    <main className="login-page login-page--reference">
-      <section
-        className="masthead compact-masthead login-masthead-3d login-reference-shell"
-        onMouseLeave={() => setSceneTilt({ rotateX: -11, rotateY: 12, glowX: 72, glowY: 24 })}
-        onMouseMove={(event) => {
-          const bounds = event.currentTarget.getBoundingClientRect()
-          const ratioX = (event.clientX - bounds.left) / bounds.width
-          const ratioY = (event.clientY - bounds.top) / bounds.height
-
-          setSceneTilt({
-            rotateX: clamp(-20 + ratioY * 18, -18, 8),
-            rotateY: clamp(-16 + ratioX * 28, -12, 18),
-            glowX: clamp(ratioX * 100, 18, 88),
-            glowY: clamp(ratioY * 100, 12, 84),
-          })
-        }}
-        style={mastheadStyle}
-      >
-        <div className="login-reference-grid">
-          <div className="login-reference-main">
-            <div className="login-reference-brand">
-              <div className="login-reference-brand__mark" aria-hidden="true">
-                <svg viewBox="0 0 72 72" role="img">
-                  <path d="M16 18h38v12H28v12h22v12H16z" />
-                </svg>
-              </div>
-              <div className="login-reference-brand__copy">
-                <strong>EXPOPILOT OS</strong>
-                <span>现场运营智能决策系统</span>
-              </div>
+    <main className="login-shell">
+      <section className="login-frame">
+        <div className="login-left">
+          <header className="login-brand">
+            <div className="login-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48" role="img">
+                <path d="M11 10h27v8H20v7h15v7H20v6h18v8H11z" />
+              </svg>
             </div>
-
-            <div className="login-reference-copy">
-              <h1>
-                EXPOPILOT <span>OS</span>
-              </h1>
-              <p className="login-reference-copy__subtitle">现场运营 · 智能决策 · 高效协同</p>
-              <span className="login-reference-copy__accent" aria-hidden="true" />
+            <div>
+              <strong>EXPOPILOT OS</strong>
+              <span>现场运营智能决策系统</span>
             </div>
+          </header>
 
-            <div className="login-reference-visual" aria-hidden="true">
-              <div className="login-venue-scene">
-                <div className="login-venue-scene__aura" />
-                <div className="login-venue-model">
-                  <div className="login-venue-model__deck">
-                    <span className="login-venue-model__zone login-venue-model__zone--entry">入口 A</span>
-                    <span className="login-venue-model__zone login-venue-model__zone--stage">舞台区</span>
-                    <span className="login-venue-model__zone login-venue-model__zone--booth">展台 512</span>
-                    <span className="login-venue-model__zone login-venue-model__zone--service">服务台</span>
-                    <span className="login-venue-model__zone login-venue-model__zone--control">控制中枢</span>
-                    <span className="login-venue-model__path login-venue-model__path--primary" />
-                    <span className="login-venue-model__path login-venue-model__path--secondary" />
-                    <span className="login-venue-model__path login-venue-model__path--vertical" />
-                    <span className="login-venue-model__beacon login-venue-model__beacon--entry" />
-                    <span className="login-venue-model__beacon login-venue-model__beacon--booth" />
-                    <span className="login-venue-model__beacon login-venue-model__beacon--stage" />
-                  </div>
-                  <div className="login-venue-tower login-venue-tower--north" />
-                  <div className="login-venue-tower login-venue-tower--south" />
-                  <div className="login-venue-tower login-venue-tower--west" />
-                </div>
-              </div>
+          <section className="login-hero">
+            <h1>
+              ExpoPilot <span>OS</span>
+            </h1>
+            <p>现场运营 · 智能决策 · 高效协同</p>
+            <i aria-hidden="true" />
+          </section>
+
+          <section
+            className="login-map"
+            aria-label="会展运营地图"
+            onMouseLeave={() => setMapFocus({ x: 62, y: 42 })}
+            onMouseMove={(event) => {
+              const bounds = event.currentTarget.getBoundingClientRect()
+              const ratioX = (event.clientX - bounds.left) / bounds.width
+              const ratioY = (event.clientY - bounds.top) / bounds.height
+              setMapFocus({
+                x: clamp(ratioX * 100, 18, 82),
+                y: clamp(ratioY * 100, 18, 78),
+              })
+            }}
+            style={mapStyle}
+          >
+            <div className="login-map-grid" aria-hidden="true" />
+            <div className="login-map-hub" aria-hidden="true">
+              <span />
             </div>
+            <div className="login-map-path login-map-path--a" aria-hidden="true" />
+            <div className="login-map-path login-map-path--b" aria-hidden="true" />
+            <div className="login-map-path login-map-path--c" aria-hidden="true" />
+            <span className="login-map-building login-map-building--entry" aria-hidden="true" />
+            <span className="login-map-building login-map-building--booth" aria-hidden="true" />
+            <span className="login-map-building login-map-building--device" aria-hidden="true" />
+            <span className="login-map-building login-map-building--dispatch" aria-hidden="true" />
+            <span className="login-map-building login-map-building--stage" aria-hidden="true" />
+            <span className="login-map-marker login-map-marker--crowd">
+              <b>人流监控</b>
+            </span>
+            <span className="login-map-marker login-map-marker--booth">
+              <b>展位运营</b>
+            </span>
+            <span className="login-map-marker login-map-marker--device">
+              <b>设备状态</b>
+            </span>
+            <span className="login-map-marker login-map-marker--task">
+              <b>任务调度</b>
+            </span>
+            <span className="login-map-dot login-map-dot--one" aria-hidden="true" />
+            <span className="login-map-dot login-map-dot--two" aria-hidden="true" />
+            <span className="login-map-dot login-map-dot--three" aria-hidden="true" />
+          </section>
 
-            <div className="login-reference-capabilities">
-              {capabilityItems.map((item) => (
-                <article className="login-reference-capability" key={item.title}>
-                  <span className="login-reference-capability__icon" aria-hidden="true" />
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                </article>
-              ))}
-            </div>
+          <section className="login-capabilities" aria-label="系统能力">
+            {capabilityItems.map((item) => (
+              <article className="login-capability" key={item.title}>
+                <span className={`login-capability-icon login-capability-icon--${item.icon}`} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="img">
+                    {item.icon === 'monitor' ? (
+                      <>
+                        <rect x="4" y="5" width="16" height="11" rx="2" />
+                        <path d="M9 20h6M12 16v4" />
+                      </>
+                    ) : null}
+                    {item.icon === 'brain' ? (
+                      <>
+                        <path d="M8 8a4 4 0 0 1 8 0v8a4 4 0 0 1-8 0z" />
+                        <path d="M12 4v16M8 10h8M8 14h8" />
+                      </>
+                    ) : null}
+                    {item.icon === 'users' ? (
+                      <>
+                        <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        <path d="M3.5 19a4.5 4.5 0 0 1 9 0M13.5 19a3.5 3.5 0 0 1 7 0" />
+                      </>
+                    ) : null}
+                    {item.icon === 'chart' ? (
+                      <>
+                        <path d="M5 19V9M12 19V5M19 19v-7" />
+                        <path d="M4 19h16" />
+                      </>
+                    ) : null}
+                  </svg>
+                </span>
+                <strong>{item.title}</strong>
+                <p>{item.description}</p>
+              </article>
+            ))}
+          </section>
 
-            <p className="login-reference-footer">© 2024 ExpoPilot OS. All rights reserved.</p>
-          </div>
+          <p className="login-footer">© 2024 ExpoPilot OS. All rights reserved.</p>
+        </div>
 
-          <aside className="panel credential-form login-auth-card login-auth-card--reference">
-            <div className="panel-head">
-              <h3>账号登录</h3>
-              <span>欢迎回来，请登录您的账户</span>
+        <aside className="login-right">
+          <section className="login-card" aria-label="账号登录">
+            <div className="login-card-head">
+              <h2>账号登录</h2>
+              <p>欢迎回来，请登录您的账户</p>
             </div>
 
             <form
-              className="stack-form"
+              className="login-form"
               onSubmit={(event) => {
                 event.preventDefault()
                 props.onLogin(new FormData(event.currentTarget), selectedRole)
               }}
             >
-              <input name="email" placeholder="邮箱地址" defaultValue="pilot@expopilot.cn" />
-              <input name="password" placeholder="密码" type="password" defaultValue="ExpoPilot2026" />
+              <label className="login-field">
+                <span className="login-field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="img">
+                    <path d="M4 7h16v10H4z" />
+                    <path d="m4 8 8 6 8-6" />
+                  </svg>
+                </span>
+                <input name="email" placeholder="邮箱地址" defaultValue="pilot@expopilot.cn" />
+              </label>
 
-              <div className="login-auth-row">
-                <label className="login-check">
-                  <input type="checkbox" name="remember" />
+              <label className="login-field">
+                <span className="login-field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="img">
+                    <rect x="5" y="10" width="14" height="10" rx="2" />
+                    <path d="M8 10V8a4 4 0 0 1 8 0v2" />
+                  </svg>
+                </span>
+                <input name="password" placeholder="密码" type="password" defaultValue="ExpoPilot2026" />
+                <span className="login-field-action" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="img">
+                    <path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </span>
+              </label>
+
+              <div className="login-form-row">
+                <label className="login-remember">
+                  <input type="checkbox" name="remember" defaultChecked />
                   <span>记住我</span>
                 </label>
-                <button className="login-link" type="button">
-                  忘记密码?
+                <button className="login-link-button" type="button">
+                  忘记密码
                 </button>
               </div>
 
-              <button type="submit">登录系统</button>
+              <button className="login-primary-button" type="submit">
+                登录系统
+              </button>
             </form>
 
-            <div className="login-auth-divider">
+            <div className="login-divider">
               <span>或</span>
             </div>
 
             <button
-              className={`login-sandbox-trigger ${showSandboxRoles ? 'is-open' : ''}`}
+              className={`login-sandbox-button ${showSandboxRoles ? 'is-open' : ''}`}
               onClick={() => setShowSandboxRoles((value) => !value)}
               type="button"
             >
-              <span className="login-sandbox-trigger__icon" aria-hidden="true">
-                ◎
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img">
+                  <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" />
+                  <path d="M4 7.5 12 12l8-4.5M12 12v9" />
+                </svg>
               </span>
               沙盒环境快速登录
             </button>
 
             {showSandboxRoles ? (
-              <div className="login-sandbox-panel">
-                <div className="login-sandbox-panel__head">
-                  <strong>选择演示角色</strong>
-                  <span>点击身份后，直接以该角色进入系统</span>
+              <section className="login-role-switcher" aria-label="切换角色">
+                <div className="login-role-switcher-head">
+                  <strong>切换角色</strong>
+                  <span aria-hidden="true">⌄</span>
                 </div>
-
-                <div className="login-role-grid login-role-grid--embedded">
-                  {props.roleProfiles.map((profile) => (
+                <div className="login-role-chips">
+                  {availableRoleProfiles.map((profile) => (
                     <button
-                      className={`role-card ${profile.role === selectedRole ? 'selected-role' : ''}`}
+                      className={`login-role-chip ${profile.role === selectedRole ? 'is-selected' : ''}`}
                       key={profile.role}
                       onClick={() => {
                         setSelectedRole(profile.role)
@@ -187,19 +258,16 @@ export function LoginPage(props: {
                       }}
                       type="button"
                     >
-                      <span className="role-kicker">{profile.title}</span>
-                      <strong>{profile.displayName}</strong>
-                      <p>{profile.description}</p>
-                      <span className="role-name">{profile.organizationLabel}</span>
+                      {getRoleChipLabel(profile.role)}
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
             ) : null}
 
-            <p className="helper-line login-auth-card__helper">仅用于演示与体验，不保存任何真实数据</p>
-          </aside>
-        </div>
+            <p className="login-card-note">仅用于演示与体验，不保存任何真实数据</p>
+          </section>
+        </aside>
       </section>
     </main>
   )
