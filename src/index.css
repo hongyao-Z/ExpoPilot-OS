@@ -5560,6 +5560,198 @@ body[data-ui-variant='designcode'] .stack-form input::placeholder {
   gap: 0.78rem;
 }
 
+.replay-report-hero,
+.replay-report-chain-card,
+.replay-execution-panel,
+.replay-responsibility-panel,
+.replay-playbook-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(255, 106, 31, 0.11), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.024)),
+    rgba(13, 12, 10, 0.9);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.3);
+}
+
+.replay-report-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(460px, 0.85fr);
+  gap: 1.2rem;
+  padding: 1.35rem;
+  border-color: rgba(255, 106, 31, 0.18);
+}
+
+.replay-report-title h2 {
+  margin: 0.72rem 0 0.78rem;
+  color: var(--cm-text);
+  font-size: clamp(1.6rem, 2.6vw, 2.7rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.replay-report-title p {
+  max-width: 68rem;
+  margin: 0;
+  color: var(--cm-text-muted);
+  font-size: 0.98rem;
+  line-height: 1.78;
+}
+
+.replay-report-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.replay-report-metrics article {
+  min-height: 5.2rem;
+  display: grid;
+  align-content: center;
+  gap: 0.38rem;
+  padding: 0.86rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.038);
+}
+
+.replay-report-metrics span,
+.replay-report-chain-list p,
+.replay-execution-step p,
+.replay-responsibility-list p,
+.replay-playbook-list span {
+  color: var(--cm-text-muted);
+}
+
+.replay-report-metrics strong {
+  color: #fffaf6;
+  font-size: 1.2rem;
+  font-weight: 950;
+}
+
+.replay-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.replay-report-chain-card,
+.replay-execution-panel,
+.replay-responsibility-panel,
+.replay-playbook-card {
+  padding: 1rem;
+}
+
+.replay-report-chain-list,
+.replay-responsibility-list,
+.replay-playbook-list {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.replay-report-chain-list div,
+.replay-responsibility-list div,
+.replay-playbook-list div {
+  padding: 0.84rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left-color: rgba(255, 106, 31, 0.42);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.replay-report-chain-list strong,
+.replay-responsibility-list strong,
+.replay-playbook-list strong {
+  display: block;
+  color: var(--cm-text);
+  font-size: 0.95rem;
+}
+
+.replay-report-chain-list p,
+.replay-responsibility-list p {
+  margin: 0.32rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.replay-execution-track {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.replay-execution-step {
+  position: relative;
+  min-height: 9.2rem;
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(255, 106, 31, 0.18);
+  border-radius: 15px;
+  background: rgba(255, 106, 31, 0.055);
+}
+
+.replay-execution-step span,
+.replay-responsibility-list span {
+  color: #ffd7c3;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.replay-execution-step strong {
+  color: var(--cm-text);
+  font-size: 0.9rem;
+}
+
+.replay-execution-step p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.replay-execution-step i {
+  position: absolute;
+  right: 0.72rem;
+  bottom: 0.68rem;
+  color: rgba(255, 208, 138, 0.24);
+  font-style: normal;
+  font-size: 1.55rem;
+  font-weight: 950;
+}
+
+.replay-report-grid--wide {
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+}
+
+.replay-playbook-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.replay-playbook-list div {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.replay-playbook-list span {
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.replay-playbook-card button {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0.9rem;
+  color: #fffaf6;
+  font-weight: 900;
+  border: 1px solid rgba(255, 126, 47, 0.48);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 123, 42, 0.94), rgba(240, 91, 24, 0.92));
+  box-shadow: 0 12px 24px rgba(255, 106, 31, 0.12);
+}
+
 .replay-summary-card {
   display: grid;
   gap: 0.38rem;
@@ -6192,6 +6384,10 @@ body[data-ui-variant='designcode'] .stack-form input::placeholder {
 }
 
 @media (max-width: 1180px) {
+  .replay-report-hero,
+  .replay-report-grid,
+  .replay-report-grid--wide,
+  .replay-execution-track,
   .replay-header-panel,
   .replay-insight-grid,
   .replay-summary-grid,
@@ -6217,6 +6413,8 @@ body[data-ui-variant='designcode'] .stack-form input::placeholder {
     padding: 1rem;
   }
 
+  .replay-report-metrics,
+  .replay-playbook-list,
   .replay-kpi-grid,
   .replay-filters,
   .replay-breakdown-item,

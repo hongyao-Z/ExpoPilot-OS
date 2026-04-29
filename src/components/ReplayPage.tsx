@@ -114,6 +114,63 @@ const MANAGER_CONFIRMATION_LABELS: Record<ManagerConfirmationStatus, string> = {
   manual_review_required: '需人工复核',
 }
 
+const REPORT_METRICS = [
+  { label: '事件等级', value: '中高风险' },
+  { label: '处理结果', value: '已完成' },
+  { label: '总用时', value: '5分40秒' },
+  { label: '响应时间', value: '42秒' },
+  { label: '人工接管', value: '0' },
+  { label: 'fallback', value: '0' },
+  { label: '审计状态', value: '已归档' },
+] as const
+
+const REPORT_SUMMARY =
+  '本次入口 A 拥堵事件从识别到派发用时 42 秒，工作人员 3 分 20 秒到达现场，5 分钟内完成分流。系统未触发 fallback，未发生人工接管，建议将该处理流程沉淀为入口拥堵预案。'
+
+const EVIDENCE_CHAIN_ITEMS = [
+  { label: '视觉信号', detail: '入口 A 人流密度持续上升。' },
+  { label: '排队长度', detail: '队列长度超过预设阈值，队尾开始外溢。' },
+  { label: '设备状态', detail: '闸机 / 通道设备状态正常，排除设备停摆。' },
+  { label: '现场反馈', detail: '入口引导员反馈入口压力增大，需要协助分流。' },
+  { label: '风险判断', detail: '短时拥堵风险上升，需要引导观众进入备用通道。' },
+] as const
+
+const DECISION_CHAIN_ITEMS = [
+  { label: 'EventReviewAgent 判断', detail: '入口 A 存在人流拥堵风险。' },
+  { label: 'DispatchAgent 建议', detail: '增派入口引导员协助分流。' },
+  { label: '建议理由', detail: '距离近、岗位匹配、当前负载低。' },
+  { label: '备选方案', detail: '安保协同支援，持续观察备用通道压力。' },
+  { label: '项目经理确认', detail: '已确认，10:07 进入任务执行。' },
+] as const
+
+const EXECUTION_CHAIN_ITEMS = [
+  { label: '任务创建', time: '10:06', detail: '生成入口 A 人流拥堵引导任务。' },
+  { label: '任务派发', time: '10:06', detail: '派发给入口引导员 A。' },
+  { label: '工作人员接收', time: '10:07', detail: '入口引导员 A 确认接收。' },
+  { label: '到达现场', time: '10:08', detail: '工作人员到达 A1 主入口。' },
+  { label: '开始处理', time: '10:09', detail: '引导观众前往备用通道。' },
+  { label: '完成反馈', time: '10:11', detail: '排队长度下降，需要继续观察。' },
+  { label: '归档', time: '10:12', detail: '系统写入审计记录，可进入复盘。' },
+] as const
+
+const RESPONSIBILITY_CHAIN_ITEMS = [
+  { label: '系统识别异常', owner: 'ExpoPilot OS', detail: '入口 A 监控源触发拥堵判断。' },
+  { label: '审核解释', owner: 'EventReviewAgent', detail: '说明异常、证据和风险等级。' },
+  { label: '派发建议', owner: 'DispatchAgent', detail: '给出动作、主执行人和备选人。' },
+  { label: '确认权', owner: '项目经理', detail: '确认后才进入任务状态流。' },
+  { label: '现场执行', owner: '入口引导员', detail: '接收、到达、处理并反馈。' },
+  { label: '系统归档', owner: '审计记录', detail: '记录证据、责任和处理结果。' },
+] as const
+
+const PLAYBOOK_ITEMS = [
+  { label: '事件类型', value: '入口拥堵' },
+  { label: '触发条件', value: '人流密度上升 + 排队长度异常' },
+  { label: '推荐动作', value: '增派引导员 + 调整入口动线' },
+  { label: '推荐岗位', value: '入口引导 / 安保协同' },
+  { label: '最佳响应时间', value: '5 分钟内' },
+  { label: '注意事项', value: '优先分流，不要直接封闭入口' },
+] as const
+
 export function ReplayPage(props: {
   activeProject?: Project
   auditLogs: AuditLog[]
@@ -375,6 +432,87 @@ export function ReplayPage(props: {
         {props.feedback?.kind && props.feedback.kind !== 'idle' ? (
           <article className={`panel feedback-banner ${feedbackClassName(props.feedback)}`}>{props.feedback.message}</article>
         ) : null}
+
+        <section className="replay-report-hero" aria-label="复盘报告摘要">
+          <div className="replay-report-title">
+            <span className="eyebrow">复盘报告摘要</span>
+            <h2>入口 A 人流拥堵处置复盘</h2>
+            <p>{REPORT_SUMMARY}</p>
+          </div>
+          <div className="replay-report-metrics">
+            {REPORT_METRICS.map((metric) => (
+              <article key={metric.label}>
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="replay-report-grid" aria-label="证据链与决策链">
+          <ReportChainCard eyebrow="证据链" title="为什么判断异常" items={EVIDENCE_CHAIN_ITEMS} />
+          <ReportChainCard eyebrow="决策链" title="Agent 建议与经理确认" items={DECISION_CHAIN_ITEMS} />
+        </section>
+
+        <section className="replay-execution-panel" aria-label="执行链">
+          <div className="replay-section-head">
+            <div>
+              <span>执行链</span>
+              <h3>从任务派发到完成反馈</h3>
+            </div>
+            <small>入口 A / 5 分钟内完成分流</small>
+          </div>
+          <div className="replay-execution-track">
+            {EXECUTION_CHAIN_ITEMS.map((item, index) => (
+              <article className="replay-execution-step" key={item.label}>
+                <span>{item.time}</span>
+                <strong>{item.label}</strong>
+                <p>{item.detail}</p>
+                <i>{index + 1}</i>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="replay-report-grid replay-report-grid--wide" aria-label="责任链与经验沉淀">
+          <article className="replay-responsibility-panel">
+            <div className="replay-section-head">
+              <div>
+                <span>责任链</span>
+                <h3>谁确认、谁处理、谁反馈</h3>
+              </div>
+              <small>全程可追溯</small>
+            </div>
+            <div className="replay-responsibility-list">
+              {RESPONSIBILITY_CHAIN_ITEMS.map((item) => (
+                <div key={item.label}>
+                  <span>{item.owner}</span>
+                  <strong>{item.label}</strong>
+                  <p>{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="replay-playbook-card">
+            <div className="replay-section-head">
+              <div>
+                <span>经验沉淀</span>
+                <h3>沉淀为预案模板</h3>
+              </div>
+              <small>静态演示</small>
+            </div>
+            <div className="replay-playbook-list">
+              {PLAYBOOK_ITEMS.map((item) => (
+                <div key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+            <button type="button">沉淀为预案模板</button>
+          </article>
+        </section>
 
         <section className="replay-header-panel">
           <div>
@@ -1243,6 +1381,27 @@ function BreakdownCard(props: { title: string; items: { label: string; value: st
           </div>
         ))}
         {props.items.length === 0 ? <div className="empty-panel">暂无数据。</div> : null}
+      </div>
+    </article>
+  )
+}
+
+function ReportChainCard(props: { eyebrow: string; title: string; items: readonly { label: string; detail: string }[] }) {
+  return (
+    <article className="replay-report-chain-card">
+      <div className="replay-section-head">
+        <div>
+          <span>{props.eyebrow}</span>
+          <h3>{props.title}</h3>
+        </div>
+      </div>
+      <div className="replay-report-chain-list">
+        {props.items.map((item) => (
+          <div key={item.label}>
+            <strong>{item.label}</strong>
+            <p>{item.detail}</p>
+          </div>
+        ))}
       </div>
     </article>
   )
