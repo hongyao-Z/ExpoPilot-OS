@@ -1,0 +1,56 @@
+﻿{
+  "cameraId": "entry-camera-01",
+  "zoneHint": "entry",
+  "signals": [
+    {
+      "signalId": "entry-frame-001",
+      "timestamp": "2026-04-19T09:00:00.000Z",
+      "peopleCount": 12,
+      "densityScore": 0.34,
+      "avgSpeed": 1.08,
+      "queueLength": 2,
+      "spillover": false,
+      "confidence": 0.91
+    },
+    {
+      "signalId": "entry-frame-002",
+      "timestamp": "2026-04-19T09:01:30.000Z",
+      "peopleCount": 18,
+      "densityScore": 0.58,
+      "avgSpeed": 0.67,
+      "queueLength": 6,
+      "spillover": false,
+      "confidence": 0.93
+    },
+    {
+      "signalId": "entry-frame-003",
+      "timestamp": "2026-04-19T09:03:00.000Z",
+      "peopleCount": 24,
+      "densityScore": 0.74,
+      "avgSpeed": 0.44,
+      "queueLength": 10,
+      "spillover": true,
+      "confidence": 0.95
+    },
+    {
+      "signalId": "entry-frame-004",
+      "timestamp": "2026-04-19T09:04:00.000Z",
+      "peopleCount": 28,
+      "densityScore": 0.82,
+      "avgSpeed": 0.39,
+      "queueLength": 14,
+      "spillover": true,
+      "confidence": 0.94
+    },
+    {
+      "signalId": "entry-frame-005",
+      "timestamp": "2026-04-19T09:05:00.000Z",
+      "peopleCount": 29,
+      "densityScore": 0.86,
+      "avgSpeed": 0.36,
+      "queueLength": 15,
+      "spillover": true,
+      "confidence": 0.96
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+﻿{
+  "organizations": [
+    { "org_id": "org-main", "name": "春季消费展项目组", "permission_role": "organizer", "status": "active" },
+    { "org_id": "org-agency", "name": "现场执行团队", "permission_role": "agency", "status": "active" },
+    { "org_id": "org-brand", "name": "品牌合作方", "permission_role": "brand", "status": "active" }
+  ],
+  "projects": [
+    {
+      "project_id": "project-spring-2026",
+      "org_id": "org-main",
+      "title": "春季消费展",
+      "start_at": "2026-04-16T09:00:00+08:00",
+      "end_at": "2026-04-16T18:00:00+08:00",
+      "venue_name": "国家会展中心 2 号馆",
+      "city": "上海",
+      "theme": "ExpoPilot OS 现场运营 MVP",
+      "status": "running",
+      "current_phase": "运行中"
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "zone-entry",
+      "project_id": "project-spring-2026",
+      "name": "入口区",
+      "zone_type": "entry",
+      "heat": 88,
+      "density": 79,
+      "queue_minutes": 11,
+      "threshold": 70,
+      "staffing_target": 2,
+      "recommended_action": "安排执行人员 1 前往入口区补位，并协助疏导入口排队。",
+      "notes": "当前固定演示主场景。"
+    },
+    {
+      "zone_id": "zone-main-corridor",
+      "project_id": "project-spring-2026",
+      "name": "主通道区",
+      "zone_type": "stage",
+      "heat": 52,
+      "density": 43,
+      "queue_minutes": 0,
+      "threshold": 65,
+      "staffing_target": 1,
+      "recommended_action": "观察主通道区密度变化，必要时执行导流。",
+      "notes": "用于后续 zone_imbalance 场景预留。"
+    },
+    {
+      "zone_id": "zone-booth-a",
+      "project_id": "project-spring-2026",
+      "name": "展台 A",
+      "zone_type": "booth",
+      "heat": 47,
+      "density": 39,
+      "queue_minutes": 0,
+      "threshold": 75,
+      "staffing_target": 1,
+      "recommended_action": "安排展台接待 1 稳定接待节奏。",
+      "notes": "用于后续 booth_heatup 场景预留。"
+    },
+    {
+      "zone_id": "zone-booth-b",
+      "project_id": "project-spring-2026",
+      "name": "展台 B",
+      "zone_type": "booth",
+      "heat": 34,
+      "density": 28,
+      "queue_minutes": 0,
+      "threshold": 75,
+      "staffing_target": 1,
+      "recommended_action": "保持待命，等待现场调度。",
+      "notes": "用于后续 zone_imbalance 场景预留。"
+    }
+  ],
+  "dataSources": [
+    {
+      "source_id": "source-entry-vision",
+      "project_id": "project-spring-2026",
+      "zone_id": "zone-entry",
+      "name": "入口区视觉输入",
+      "source_type": "vision",
+      "mode": "realtime",
+      "health": "online",
+      "last_seen_at": "2026-04-16T10:18:12+08:00",
+      "latency_seconds": 1.2,
+      "fallback_enabled": true,
+      "provider_name": "Edge Vision"
+    },
+    {
+      "source_id": "source-booth-a-vision",
+      "project_id": "project-spring-2026",
+      "zone_id": "zone-booth-a",
+      "name": "展台 A 视觉输入",
+      "source_type": "vision",
+      "mode": "realtime",
+      "health": "online",
+      "last_seen_at": "2026-04-16T10:18:10+08:00",
+      "latency_seconds": 1.5,
+      "fallback_enabled": true,
+      "provider_name": "Edge Vision"
+    },
+    {
+      "source_id": "source-manual-console",
+      "project_id": "project-spring-2026",
+      "name": "现场人工补录台",
+      "source_type": "manual",
+      "mode": "manual",
+      "health": "online",
+      "last_seen_at": "2026-04-16T10:18:00+08:00",
+      "latency_seconds": 0,
+      "fallback_enabled": true,
+      "provider_name": "运营后台"
+    }
+  ],
+  "staff": [
+    {
+      "staff_id": "staff-manager-01",
+      "org_id": "org-main",
+      "name": "项目经理",
+      "title": "项目经理",
+      "permission_role": "organizer",
+      "assigned_zone_id": "zone-main-corridor",
+      "shift_status": "on_duty",
+      "current_load": 0,
+      "device_status": "online",
+      "reminder_channels": ["mobile", "browser"],
+      "skills": ["全场调度", "事件确认", "项目复盘"],
+      "device_label": "iPad"
+    },
+    {
+      "staff_id": "staff-01",
+      "org_id": "org-agency",
+      "name": "执行人员 1",
+      "title": "执行人员 1",
+      "permission_role": "staff",
+      "assigned_zone_id": "zone-entry",
+      "shift_status": "on_duty",
+      "current_load": 0,
+      "device_status": "online",
+      "reminder_channels": ["mobile", "browser"],
+      "skills": ["补位", "导流", "入口协同"],
+      "device_label": "Android"
+    },
+    {
+      "staff_id": "staff-booth-01",
+      "org_id": "org-brand",
+      "name": "展台接待 1",
+      "title": "展台接待 1",
+      "permission_role": "brand",
+      "assigned_zone_id": "zone-booth-a",
+      "shift_status": "on_duty",
+      "current_load": 0,
+      "device_status": "online",
+      "reminder_channels": ["mobile"],
+      "skills": ["接待", "讲解", "咨询"],
+      "device_label": "iPhone"
+    }
+  ],
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "project_id": "project-spring-2026",
+      "zone_id": "zone-entry",
+      "timestamp": "2026-04-16T10:18:12+08:00",
+      "source": "source-entry-vision",
+      "idempotencyKey": "spring-entry-001",
+      "signal_type": "entrance_congestion",
+      "severity": "high",
+      "summary": "入口区排队时长已超过 10 分钟，队尾开始外溢。",
+      "confidence": 0.92,
+      "input_mode": "realtime",
+      "raw_rules": ["queue_minutes > 10", "density > 70 for 90s"]
+    }
+  ],
+  "events": [
+    {
+      "event_id": "evt-001",
+      "project_id": "project-spring-2026",
+      "zone_id": "zone-entry",
+      "signal_ids": ["sig-001"],
+      "timestamp": "2026-04-16T10:18:12+08:00",
+      "source": "source-entry-vision",
+      "idempotencyKey": "event-spring-entry-001",
+      "event_type": "entrance_congestion",
+      "title": "入口拥堵",
+      "summary": "入口区排队外溢，需要尽快补位并疏导队伍。",
+      "severity": "high",
+      "status": "confirmed",
+      "priority_score": 92,
+      "recommended_action": "安排执行人员 1 前往入口区补位，并协助打开备用检票通道。",
+      "recommended_assignee_id": "staff-01",
+      "reminder_channels": ["mobile", "browser"],
+      "explanation": "入口区排队时长和密度同时超过阈值，满足入口拥堵判断条件。",
+      "strategy_id": "strategy-entry-relief",
+      "requires_confirmation": false
+    }
+  ],
+  "tasks": [],
+  "feedback": [],
+  "strategies": [
+    {
+      "strategy_id": "strategy-entry-relief",
+      "name": "入口补位模板",
+      "category": "入口调度",
+      "status": "active",
+      "scope": "zone",
+      "project_id": "project-spring-2026",
+      "zone_id": "zone-entry",
+      "trigger_summary": "入口区排队时长超过 10 分钟且密度持续高于阈值。",
+      "action_summary": "安排执行人员补位，并打开备用检票通道。",
+      "reminder_channels": ["mobile", "browser"],
+      "owner": "项目经理",
+      "saved_from": "template",
+      "linked_event_ids": ["evt-001"],
+      "usage_count": 1,
+      "last_used_at": "2026-04-16T10:18:12+08:00"
+    }
+  ],
+  "reports": [],
+  "auditLogs": [
+    {
+      "log_id": "log-001",
+      "operator_id": "系统",
+      "action_type": "event_created",
+      "target_id": "evt-001",
+      "created_at": "2026-04-16T10:18:12+08:00"
+    }
+  ],
+  "analytics": [
+    {
+      "analytics_id": "ana-001",
+      "type": "event_triggered",
+      "project_id": "project-spring-2026",
+      "actor": "系统",
+      "at": "2026-04-16T10:18:12+08:00",
+      "detail": "入口拥堵事件触发"
+    }
+  ],
+  "tokenBudget": {
+    "explain": 2050,
+    "dispatch_recommendation": 2580,
+    "replay_report": 9200,
+    "per_project_total": 71600
+  }
+}

@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+.env
+.env.*
+*.local
+*.log
+preview*.png
+preview*.log
+preview*.err.log
+vite-dev*.log
+vite-dev*.err.log
+.codex-long-runner

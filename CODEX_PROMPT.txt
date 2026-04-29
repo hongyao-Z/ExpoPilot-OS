@@ -1,0 +1,67 @@
+你是资深全栈产品工程师，请为 ExpoPilot OS 构建一个可演示的 MVP。
+
+项目定位：
+ExpoPilot OS 不是完整会展平台，而是面向会务执行公司的现场运营 Agent 操作层。
+
+MVP 目标：
+跑通这条闭环：
+事件识别 -> 任务下发 -> 执行反馈 -> 项目复盘
+
+技术栈固定：
+- Frontend: Next.js + TypeScript + Tailwind
+- Backend: FastAPI + Python
+- Database: PostgreSQL
+- Realtime: WebSocket
+- Deploy: Docker Compose
+
+MVP 范围：
+1. 后台端：
+   - 登录
+   - 项目列表
+   - 项目创建
+   - 区域配置
+   - 实时态势页
+   - 事件中心页
+   - 任务调度页
+   - 复盘分析页
+
+2. 工作人员端：
+   - 登录
+   - 当前任务
+   - 任务详情
+   - 历史任务
+   - 任务状态反馈
+
+3. 事件类型：
+   - entrance_congestion
+   - booth_heatup
+   - zone_imbalance
+
+4. 任务类型：
+   - reinforce_entrance
+   - support_booth
+   - guide_crowd
+   - standby_observe
+
+严格不做：
+- 报名注册系统
+- CRM
+- lead capture
+- 真正复杂 CV 模型
+- 深度可穿戴接入
+- 大而全平台能力
+
+请按以下顺序工作：
+第一步：初始化 monorepo 和基础工程
+第二步：建立数据库模型和 API
+第三步：建立模拟事件流和规则引擎
+第四步：建立任务下发和反馈链路
+第五步：完成后台核心页面
+第六步：完成复盘页
+第七步：补 README、AGENTS.md、DEMO_SCRIPT.md、种子数据和启动脚本
+
+要求：
+- 保持代码可运行
+- 每完成一个阶段都给出已完成项和下一步计划
+- 优先保证 MVP 可演示，不要过度设计
+- 为最终路演准备一套可重复运行的演示数据和脚本

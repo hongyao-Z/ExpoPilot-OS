@@ -1,0 +1,54 @@
+{
+  "cameraId": "booth-a-camera-01",
+  "zoneHint": "booth",
+  "frameRate": 2,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "timestamp": "2026-04-19T10:10:00.000Z",
+      "detections": [
+        { "detectionId": "booth-det-001", "bbox": [142, 124, 188, 240], "score": 0.97, "class": "person", "centerPoint": [165, 182] },
+        { "detectionId": "booth-det-002", "bbox": [202, 128, 248, 246], "score": 0.96, "class": "person", "centerPoint": [225, 187] },
+        { "detectionId": "booth-det-003", "bbox": [262, 130, 308, 248], "score": 0.95, "class": "person", "centerPoint": [285, 189] },
+        { "detectionId": "booth-det-004", "bbox": [320, 132, 366, 250], "score": 0.94, "class": "person", "centerPoint": [343, 191] }
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "timestamp": "2026-04-19T10:11:00.000Z",
+      "detections": [
+        { "detectionId": "booth-det-005", "bbox": [138, 122, 186, 240], "score": 0.97, "class": "person", "centerPoint": [162, 181] },
+        { "detectionId": "booth-det-006", "bbox": [196, 126, 244, 244], "score": 0.96, "class": "person", "centerPoint": [220, 185] },
+        { "detectionId": "booth-det-007", "bbox": [254, 128, 302, 246], "score": 0.95, "class": "person", "centerPoint": [278, 187] },
+        { "detectionId": "booth-det-008", "bbox": [312, 130, 360, 248], "score": 0.94, "class": "person", "centerPoint": [336, 189] },
+        { "detectionId": "booth-det-009", "bbox": [370, 132, 418, 250], "score": 0.93, "class": "person", "centerPoint": [394, 191] },
+        { "detectionId": "booth-det-010", "bbox": [428, 134, 476, 252], "score": 0.92, "class": "person", "centerPoint": [452, 193] }
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "timestamp": "2026-04-19T10:12:00.000Z",
+      "detections": [
+        { "detectionId": "booth-det-011", "bbox": [136, 122, 184, 240], "score": 0.98, "class": "person", "centerPoint": [160, 181] },
+        { "detectionId": "booth-det-012", "bbox": [192, 126, 240, 244], "score": 0.97, "class": "person", "centerPoint": [216, 185] },
+        { "detectionId": "booth-det-013", "bbox": [248, 128, 296, 246], "score": 0.96, "class": "person", "centerPoint": [272, 187] },
+        { "detectionId": "booth-det-014", "bbox": [304, 130, 352, 248], "score": 0.95, "class": "person", "centerPoint": [328, 189] },
+        { "detectionId": "booth-det-015", "bbox": [360, 132, 408, 250], "score": 0.94, "class": "person", "centerPoint": [384, 191] },
+        { "detectionId": "booth-det-016", "bbox": [416, 134, 464, 252], "score": 0.93, "class": "person", "centerPoint": [440, 193] }
+      ]
+    },
+    {
+      "frameIndex": 3,
+      "timestamp": "2026-04-19T10:13:00.000Z",
+      "detections": [
+        { "detectionId": "booth-det-017", "bbox": [134, 122, 182, 240], "score": 0.98, "class": "person", "centerPoint": [158, 181] },
+        { "detectionId": "booth-det-018", "bbox": [190, 126, 238, 244], "score": 0.97, "class": "person", "centerPoint": [214, 185] },
+        { "detectionId": "booth-det-019", "bbox": [246, 128, 294, 246], "score": 0.96, "class": "person", "centerPoint": [270, 187] },
+        { "detectionId": "booth-det-020", "bbox": [302, 130, 350, 248], "score": 0.95, "class": "person", "centerPoint": [326, 189] },
+        { "detectionId": "booth-det-021", "bbox": [358, 132, 406, 250], "score": 0.94, "class": "person", "centerPoint": [382, 191] },
+        { "detectionId": "booth-det-022", "bbox": [414, 134, 462, 252], "score": 0.93, "class": "person", "centerPoint": [438, 193] },
+        { "detectionId": "booth-det-023", "bbox": [470, 136, 518, 254], "score": 0.92, "class": "person", "centerPoint": [494, 195] }
+      ]
+    }
+  ]
+}

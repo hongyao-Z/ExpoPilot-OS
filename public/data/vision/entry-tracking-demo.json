@@ -1,0 +1,37 @@
+﻿{
+  "cameraId": "entry-camera-01",
+  "zoneHint": "entry",
+  "frameRate": 2,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "timestamp": "2026-04-19T09:03:00.000Z",
+      "tracks": [
+        { "trackId": "track-001", "bbox": [82, 126, 126, 238], "centerPoint": [104, 182], "trajectory": [[112, 168], [108, 175], [104, 182]], "speedEstimate": 0.52 },
+        { "trackId": "track-002", "bbox": [146, 132, 192, 248], "centerPoint": [169, 190], "trajectory": [[176, 178], [172, 184], [169, 190]], "speedEstimate": 0.48 },
+        { "trackId": "track-003", "bbox": [208, 136, 254, 252], "centerPoint": [231, 194], "trajectory": [[238, 184], [235, 189], [231, 194]], "speedEstimate": 0.46 }
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "timestamp": "2026-04-19T09:04:00.000Z",
+      "tracks": [
+        { "trackId": "track-001", "bbox": [78, 124, 124, 238], "centerPoint": [101, 181], "trajectory": [[108, 175], [104, 182], [101, 181]], "speedEstimate": 0.41 },
+        { "trackId": "track-002", "bbox": [138, 129, 184, 247], "centerPoint": [161, 188], "trajectory": [[172, 184], [169, 190], [161, 188]], "speedEstimate": 0.38 },
+        { "trackId": "track-003", "bbox": [198, 134, 246, 252], "centerPoint": [222, 193], "trajectory": [[235, 189], [231, 194], [222, 193]], "speedEstimate": 0.35 },
+        { "trackId": "track-004", "bbox": [258, 136, 306, 255], "centerPoint": [282, 195], "trajectory": [[292, 190], [286, 193], [282, 195]], "speedEstimate": 0.33 }
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "timestamp": "2026-04-19T09:05:00.000Z",
+      "tracks": [
+        { "trackId": "track-001", "bbox": [74, 124, 122, 240], "centerPoint": [98, 182], "trajectory": [[104, 182], [101, 181], [98, 182]], "speedEstimate": 0.29 },
+        { "trackId": "track-002", "bbox": [132, 129, 180, 248], "centerPoint": [156, 188], "trajectory": [[169, 190], [161, 188], [156, 188]], "speedEstimate": 0.27 },
+        { "trackId": "track-003", "bbox": [190, 132, 238, 250], "centerPoint": [214, 191], "trajectory": [[231, 194], [222, 193], [214, 191]], "speedEstimate": 0.24 },
+        { "trackId": "track-004", "bbox": [248, 134, 296, 254], "centerPoint": [272, 194], "trajectory": [[286, 193], [282, 195], [272, 194]], "speedEstimate": 0.22 },
+        { "trackId": "track-005", "bbox": [306, 138, 354, 258], "centerPoint": [330, 198], "trajectory": [[338, 195], [334, 197], [330, 198]], "speedEstimate": 0.19 }
+      ]
+    }
+  ]
+}

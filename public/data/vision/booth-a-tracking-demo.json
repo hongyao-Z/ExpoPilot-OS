@@ -1,0 +1,54 @@
+{
+  "cameraId": "booth-a-camera-01",
+  "zoneHint": "booth",
+  "frameRate": 2,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "timestamp": "2026-04-19T10:10:00.000Z",
+      "tracks": [
+        { "trackId": "booth-track-001", "bbox": [142, 124, 188, 240], "centerPoint": [165, 182], "trajectory": [[170, 176], [168, 179], [165, 182]], "speedEstimate": 0.34 },
+        { "trackId": "booth-track-002", "bbox": [202, 128, 248, 246], "centerPoint": [225, 187], "trajectory": [[231, 181], [228, 184], [225, 187]], "speedEstimate": 0.31 },
+        { "trackId": "booth-track-003", "bbox": [262, 130, 308, 248], "centerPoint": [285, 189], "trajectory": [[291, 184], [288, 187], [285, 189]], "speedEstimate": 0.29 },
+        { "trackId": "booth-track-004", "bbox": [320, 132, 366, 250], "centerPoint": [343, 191], "trajectory": [[349, 186], [346, 189], [343, 191]], "speedEstimate": 0.28 }
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "timestamp": "2026-04-19T10:11:00.000Z",
+      "tracks": [
+        { "trackId": "booth-track-001", "bbox": [138, 122, 186, 240], "centerPoint": [162, 181], "trajectory": [[168, 179], [165, 182], [162, 181]], "speedEstimate": 0.22 },
+        { "trackId": "booth-track-002", "bbox": [196, 126, 244, 244], "centerPoint": [220, 185], "trajectory": [[228, 184], [225, 187], [220, 185]], "speedEstimate": 0.2 },
+        { "trackId": "booth-track-003", "bbox": [254, 128, 302, 246], "centerPoint": [278, 187], "trajectory": [[288, 187], [285, 189], [278, 187]], "speedEstimate": 0.19 },
+        { "trackId": "booth-track-004", "bbox": [312, 130, 360, 248], "centerPoint": [336, 189], "trajectory": [[346, 189], [343, 191], [336, 189]], "speedEstimate": 0.18 },
+        { "trackId": "booth-track-005", "bbox": [370, 132, 418, 250], "centerPoint": [394, 191], "trajectory": [[402, 188], [398, 190], [394, 191]], "speedEstimate": 0.21 },
+        { "trackId": "booth-track-006", "bbox": [428, 134, 476, 252], "centerPoint": [452, 193], "trajectory": [[460, 190], [456, 192], [452, 193]], "speedEstimate": 0.26 }
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "timestamp": "2026-04-19T10:12:00.000Z",
+      "tracks": [
+        { "trackId": "booth-track-001", "bbox": [136, 122, 184, 240], "centerPoint": [160, 181], "trajectory": [[165, 182], [162, 181], [160, 181]], "speedEstimate": 0.18 },
+        { "trackId": "booth-track-002", "bbox": [192, 126, 240, 244], "centerPoint": [216, 185], "trajectory": [[225, 187], [220, 185], [216, 185]], "speedEstimate": 0.17 },
+        { "trackId": "booth-track-003", "bbox": [248, 128, 296, 246], "centerPoint": [272, 187], "trajectory": [[285, 189], [278, 187], [272, 187]], "speedEstimate": 0.16 },
+        { "trackId": "booth-track-004", "bbox": [304, 130, 352, 248], "centerPoint": [328, 189], "trajectory": [[343, 191], [336, 189], [328, 189]], "speedEstimate": 0.15 },
+        { "trackId": "booth-track-005", "bbox": [360, 132, 408, 250], "centerPoint": [384, 191], "trajectory": [[398, 190], [394, 191], [384, 191]], "speedEstimate": 0.16 },
+        { "trackId": "booth-track-006", "bbox": [416, 134, 464, 252], "centerPoint": [440, 193], "trajectory": [[456, 192], [452, 193], [440, 193]], "speedEstimate": 0.2 }
+      ]
+    },
+    {
+      "frameIndex": 3,
+      "timestamp": "2026-04-19T10:13:00.000Z",
+      "tracks": [
+        { "trackId": "booth-track-001", "bbox": [134, 122, 182, 240], "centerPoint": [158, 181], "trajectory": [[162, 181], [160, 181], [158, 181]], "speedEstimate": 0.15 },
+        { "trackId": "booth-track-002", "bbox": [190, 126, 238, 244], "centerPoint": [214, 185], "trajectory": [[220, 185], [216, 185], [214, 185]], "speedEstimate": 0.14 },
+        { "trackId": "booth-track-003", "bbox": [246, 128, 294, 246], "centerPoint": [270, 187], "trajectory": [[278, 187], [272, 187], [270, 187]], "speedEstimate": 0.13 },
+        { "trackId": "booth-track-004", "bbox": [302, 130, 350, 248], "centerPoint": [326, 189], "trajectory": [[336, 189], [328, 189], [326, 189]], "speedEstimate": 0.12 },
+        { "trackId": "booth-track-005", "bbox": [358, 132, 406, 250], "centerPoint": [382, 191], "trajectory": [[394, 191], [384, 191], [382, 191]], "speedEstimate": 0.13 },
+        { "trackId": "booth-track-006", "bbox": [414, 134, 462, 252], "centerPoint": [438, 193], "trajectory": [[452, 193], [440, 193], [438, 193]], "speedEstimate": 0.15 },
+        { "trackId": "booth-track-007", "bbox": [470, 136, 518, 254], "centerPoint": [494, 195], "trajectory": [[502, 193], [498, 194], [494, 195]], "speedEstimate": 0.18 }
+      ]
+    }
+  ]
+}
