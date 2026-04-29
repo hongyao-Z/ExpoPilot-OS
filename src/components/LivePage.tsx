@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type {
   EventOperationalItem,
   LiveMetrics,
@@ -599,7 +599,7 @@ export function LivePage(props: {
     [activeVisionConfig.thresholds, activeVisionZoneType, debugFrameIndex, metricsTimeline, visionEventCandidate],
   )
 
-  async function loadVisionReplayData() {
+  const loadVisionReplayData = useCallback(async () => {
     setVisionReplayStatus('loading')
     setVisionReplayError(undefined)
 
@@ -634,11 +634,29 @@ export function LivePage(props: {
       setVisionReplayStatus('error')
       setVisionReplayError(error instanceof Error ? error.message : '视觉回放加载失败')
     }
-  }
+  }, [
+    activeVisionConfig,
+    activeVisionZoneType,
+    currentProjectId,
+    detectionSource,
+    entryZone,
+    selectedZone,
+    trackingSource,
+  ])
 
   useEffect(() => {
-    void loadVisionReplayData()
-  }, [activeVisionConfig, currentProjectId, entryZone?.zone_id, selectedZone?.zone_id, activeVisionZoneType])
+    let cancelled = false
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadVisionReplayData()
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [loadVisionReplayData])
 
   useEffect(() => {
     let cancelled = false
@@ -673,8 +691,18 @@ export function LivePage(props: {
       return
     }
 
+    let cancelled = false
+
     appendAgentAuditRecords(derivedAuditRecords)
-    setPersistedAuditRecords(listAgentAuditRecordsByScope(auditScope))
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setPersistedAuditRecords(listAgentAuditRecordsByScope(auditScope))
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [auditScope, derivedAuditRecords])
 
   const handleReplayCameraSignal = () => {

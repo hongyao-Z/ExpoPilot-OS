@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import type { EventOperationalItem, Project, RoleType, Session, UiFeedbackState, Zone } from '../domain/types'
 import { eventOperationalStateLabel, feedbackClassName, formatDateTime, severityLabel, sourceTypeLabel, triggerRuleLabel } from '../lib/format'
 import type { RouteState } from '../lib/router'
@@ -21,12 +21,6 @@ export function EventCenterPage(props: {
 }) {
   const [zoneFilter, setZoneFilter] = useState('all')
   const [selectedEventId, setSelectedEventId] = useState<string | null>(props.eventItems[0]?.event.event_id ?? null)
-
-  useEffect(() => {
-    if (!selectedEventId && props.eventItems[0]) {
-      setSelectedEventId(props.eventItems[0].event.event_id)
-    }
-  }, [props.eventItems, selectedEventId])
 
   const filteredEvents = useMemo(() => {
     return props.eventItems.filter((item) => {

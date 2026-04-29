@@ -4,9 +4,13 @@ import path from 'node:path'
 const root = path.resolve(import.meta.dirname, '..')
 const snapshotPath = path.join(root, 'public', 'data', 'bootstrap.json')
 
+export function stripUtf8Bom(raw) {
+  return raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw
+}
+
 export async function loadSnapshot() {
   const raw = await fs.readFile(snapshotPath, 'utf8')
-  return JSON.parse(raw)
+  return JSON.parse(stripUtf8Bom(raw))
 }
 
 export function getProjectBootstrap(snapshot, projectId) {

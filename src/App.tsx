@@ -1,4 +1,4 @@
-﻿import { startTransition, useEffect, useMemo, useState } from 'react'
+﻿import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import { defaultSystemSettings, isProjectOperationallyReady, roleProfiles, routeGuard, SESSION_KEY, SETTINGS_KEY } from './app-config'
 import { ConfigPage } from './components/ConfigPage'
 import { DispatchPage } from './components/DispatchPage'
@@ -93,9 +93,25 @@ function App() {
   const [route, setRoute] = useState<RouteState>(() => parseRoute(window.location.hash))
   const [feedback, setFeedback] = useState<UiFeedbackState | null>(null)
   const [loading, setLoading] = useState(false)
-  const uiVariant = useMemo(resolveUiVariant, [])
+  const uiVariant = useMemo(() => resolveUiVariant(), [])
 
   const snapshot = snapshotState.snapshot
+
+  const commitSnapshot = useCallback((next: ExpoPilotSnapshot, nextFeedback?: UiFeedbackState, origin: SnapshotSourceOrigin = 'persisted') => {
+    setSnapshotState(createSnapshotState(next, origin))
+    saveSnapshot(next)
+    if (nextFeedback) setFeedback(nextFeedback)
+  }, [])
+
+  const resetProjectState = useCallback(async () => {
+    setLoading(true)
+    try {
+      const nextState = await loadBootstrapSnapshotState(import.meta.env.BASE_URL)
+      commitSnapshot(nextState.snapshot, { kind: 'success', message: '项目快照已重置。', scope: 'global' }, nextState.origin)
+    } finally {
+      setLoading(false)
+    }
+  }, [commitSnapshot])
 
   useEffect(() => {
     document.body.dataset.uiVariant = uiVariant
@@ -112,8 +128,18 @@ function App() {
 
   useEffect(() => {
     if (loadPersistedSnapshotState()) return
-    void resetProjectState()
-  }, [])
+    let cancelled = false
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void resetProjectState()
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [resetProjectState])
 
   useEffect(() => {
     if (!feedback || feedback.kind === 'idle') return undefined
@@ -172,22 +198,6 @@ function App() {
   const blockedReason = operationalBlocked
     ? '当前项目尚未完成区域或数据源配置，不能进入实时运行链路。请先在现场配置页补齐区域、数据源和岗位绑定。'
     : undefined
-
-  async function resetProjectState() {
-    setLoading(true)
-    try {
-      const nextState = await loadBootstrapSnapshotState(import.meta.env.BASE_URL)
-      commitSnapshot(nextState.snapshot, { kind: 'success', message: '项目快照已重置。', scope: 'global' }, nextState.origin)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function commitSnapshot(next: ExpoPilotSnapshot, nextFeedback?: UiFeedbackState, origin: SnapshotSourceOrigin = 'persisted') {
-    setSnapshotState(createSnapshotState(next, origin))
-    saveSnapshot(next)
-    if (nextFeedback) setFeedback(nextFeedback)
-  }
 
   function commitSettings(next: SystemSettings, nextFeedback?: UiFeedbackState, nextSnapshot?: ExpoPilotSnapshot) {
     setSettings(next)

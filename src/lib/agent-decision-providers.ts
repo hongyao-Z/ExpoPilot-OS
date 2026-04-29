@@ -92,7 +92,8 @@ export async function buildMockAgentDecision(
   })
 }
 
-export function buildRemoteAgentPlaceholderDecision(_context: AgentContext): AgentDecisionBase {
+export function buildRemoteAgentPlaceholderDecision(context: AgentContext): AgentDecisionBase {
+  void context
   throw new Error('remote_agent_placeholder 当前未接入真实远端决策服务。')
 }
 

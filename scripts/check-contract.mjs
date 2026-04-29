@@ -2,12 +2,12 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { buildSimulatedSignal, createManualEvent, explainEvent, getReplayReport, loadSnapshot, saveStrategyFromEvent } from './runtime-engine.mjs'
+import { buildSimulatedSignal, createManualEvent, explainEvent, getReplayReport, loadSnapshot, saveStrategyFromEvent, stripUtf8Bom } from './runtime-engine.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const srcBootstrap = await fs.readFile(path.join(root, 'src', 'domain', 'bootstrap.json'), 'utf8')
 const publicBootstrap = await fs.readFile(path.join(root, 'public', 'data', 'bootstrap.json'), 'utf8')
-assert.equal(srcBootstrap, publicBootstrap)
+assert.equal(stripUtf8Bom(srcBootstrap), stripUtf8Bom(publicBootstrap))
 
 const snapshot = await loadSnapshot()
 const signal = buildSimulatedSignal(snapshot, 'project-spring-2026')
