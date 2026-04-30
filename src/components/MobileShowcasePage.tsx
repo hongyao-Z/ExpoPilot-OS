@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   appendDemoHistory,
   getDemoTaskStatusLabel,
   readDemoState,
   resetDemoState,
+  subscribeDemoState,
   transitionDemoTaskStatus,
   type DemoTaskStatus,
 } from '../lib/demo-state'
+import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep } from '../lib/demo-guide'
 import { getDemoTaskLifecycleById } from '../lib/task-lifecycle'
 import { getLatestFeedbackByTaskId } from '../lib/staff-feedback'
 
@@ -122,6 +124,17 @@ function getTransitionLabel(status: DemoTaskStatus) {
   return `任务状态更新为${getDemoTaskStatusLabel(status)}`
 }
 
+function getRecommendedActionLabel(currentState: MobileTaskState) {
+  if (currentState === 'pending_approval') return '等待项目经理确认'
+  if (currentState === 'dispatched') return '确认接收'
+  if (currentState === 'accepted') return '我已到达'
+  if (currentState === 'en_route') return '开始处理'
+  if (currentState === 'in_progress') return '完成反馈'
+  if (currentState === 'feedback_submitted' || currentState === 'archived') return '查看复盘'
+  if (currentState === 'support') return '等待支援确认'
+  return '等待现场指令'
+}
+
 export function MobileShowcasePage() {
   const task = getDemoTaskLifecycleById(focusTaskId)
   const latestFeedback = getLatestFeedbackByTaskId(focusTaskId)
@@ -129,6 +142,16 @@ export function MobileShowcasePage() {
   const [taskState, setTaskState] = useState<MobileTaskState>(() => readDemoState().taskStatus)
   const [feedbackNote, setFeedbackNote] = useState(() => readDemoState().lastFeedbackText)
   const [localNotice, setLocalNotice] = useState('')
+
+  useEffect(
+    () =>
+      subscribeDemoState((nextState) => {
+        setDemoState(nextState)
+        setTaskState(nextState.taskStatus)
+        setFeedbackNote(nextState.lastFeedbackText)
+      }),
+    [],
+  )
 
   const progressLabel = useMemo(() => {
     if (taskState === 'support') return '已通知项目经理，请等待支援确认'
@@ -170,6 +193,14 @@ export function MobileShowcasePage() {
     window.location.hash = '#/project/project-spring-2026/live'
   }
 
+  const goToReplay = () => {
+    window.location.hash = '#/project/project-spring-2026/replay'
+  }
+
+  const mobileGuideStep = inferDemoGuideStep('mobile', demoState)
+  const mobileNextPath = getNextDemoPath('mobile', demoState)
+  const recommendedActionLabel = getRecommendedActionLabel(taskState)
+
   return (
     <main className="mobile-showcase">
       <section className="mobile-phone-frame mobile-worker-frame" aria-label="场脉工作人员任务端">
@@ -180,6 +211,24 @@ export function MobileShowcasePage() {
           </div>
           <em>在线</em>
         </header>
+
+        <section className="demo-guide-card demo-guide-card--mobile" aria-label="移动端演示引导">
+          <div className="demo-guide-progress">
+            <span>演示进度 {mobileGuideStep.order} / {demoGuideTotalSteps}</span>
+            <strong>{mobileGuideStep.title}</strong>
+          </div>
+          <p>{mobileGuideStep.description}</p>
+          <div className="demo-guide-status">
+            <span>当前状态：{stateLabels[taskState]}</span>
+            <span>推荐操作：{recommendedActionLabel}</span>
+          </div>
+          {taskState === 'feedback_submitted' || taskState === 'archived' ? (
+            <button className="demo-guide-action" type="button" onClick={() => { window.location.hash = mobileNextPath || '#/project/project-spring-2026/replay' }}>
+              查看复盘
+            </button>
+          ) : null}
+          <small className="demo-guide-muted">这是当前浏览器内记录的本地演示状态，不代表跨设备实时同步。</small>
+        </section>
 
         <section className={`mobile-card mobile-task-hero mobile-task-hero--${stateTone[taskState]}`}>
           <div className="mobile-task-status-row">
@@ -250,8 +299,13 @@ export function MobileShowcasePage() {
             ))}
           </div>
           {taskState === 'pending_approval' ? <p className="mobile-command-hint">待项目经理确认派发后，工作人员再开始接收和处理。</p> : null}
-          <p className="mobile-command-hint">请求支援 / 现场异常用于无法独立处理时上报，不会写入真实后端。</p>
+          <p className="mobile-command-hint">请求支援 / 现场异常用于无法独立处理时上报，不会离开当前浏览器。</p>
           {localNotice ? <p className="mobile-success-note">{localNotice}</p> : null}
+          {taskState === 'feedback_submitted' ? (
+            <button className="mobile-replay-button" type="button" onClick={goToReplay}>
+              查看复盘
+            </button>
+          ) : null}
         </section>
 
         <section className="mobile-card mobile-feedback-card mobile-worker-feedback">
@@ -299,6 +353,7 @@ export function MobileShowcasePage() {
 
         <footer className="mobile-cta mobile-worker-cta">
           <button onClick={goToLive} type="button">查看桌面控制台</button>
+          <button onClick={goToReplay} type="button">查看审计复盘</button>
           <button className="mobile-ghost-button" onClick={handleResetDemoState} type="button">重置演示状态</button>
         </footer>
       </section>

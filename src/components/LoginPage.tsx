@@ -1,5 +1,6 @@
 ﻿import { useState, type CSSProperties } from 'react'
 import type { RoleType } from '../domain/types'
+import { demoGuideTotalSteps, getDemoGuideStepById } from '../lib/demo-guide'
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -21,8 +22,8 @@ function getRoleChipLabel(role: RoleType) {
 }
 
 function getRoleChipDescription(role: RoleType) {
-  if (role === 'organizer') return '确认派发与查看全局指挥台'
-  if (role === 'staff') return '查看入口 A 现场处理任务'
+  if (role === 'organizer') return '进入 LivePage，确认派发任务'
+  if (role === 'staff') return '直接查看 Mobile H5 任务流程'
   if (role === 'agency') return '查看执行侧协同视图'
   if (role === 'brand') return '查看展台与活动数据'
   return '查看系统管理视图'
@@ -62,6 +63,7 @@ export function LoginPage(props: {
 
   const primaryRoleProfiles = props.roleProfiles.filter((profile) => profile.role === 'organizer' || profile.role === 'staff')
   const availableRoleProfiles = primaryRoleProfiles.length >= 2 ? primaryRoleProfiles : props.roleProfiles.slice(0, 2)
+  const loginGuideStep = getDemoGuideStepById('login')
 
   const mapStyle = {
     '--login-map-x': `${mapFocus.x}%`,
@@ -249,6 +251,14 @@ export function LoginPage(props: {
               沙盒环境快速登录
             </button>
             <p className="login-sandbox-helper">无需账号，选择角色进入演示环境。</p>
+            <section className="login-demo-guide" aria-label="演示模式入口">
+              <div>
+                <span>演示进度 1 / {demoGuideTotalSteps}</span>
+                <strong>{loginGuideStep.title}</strong>
+                <p>建议演示路径：项目经理进入控制台 → 工作人员任务端 → 审计复盘。</p>
+              </div>
+              <small>{loginGuideStep.description}</small>
+            </section>
 
             {showSandboxRoles ? (
               <section className="login-role-switcher" aria-label="切换角色">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { AuditLog, EventOperationalItem, Project, ReviewReport, RoleType, Session, UiFeedbackState } from '../domain/types'
 import { auditActionLabel, feedbackClassName, formatDateTime, formatPercent, severityLabel } from '../lib/format'
 import { getEventActionDefinition, isEventActionKey } from '../lib/event-action-catalog'
@@ -22,7 +22,8 @@ import { getStaffById } from '../lib/staff-pool'
 import type { StaffPoolMember, StaffRole } from '../lib/staff-pool'
 import { getVenueZoneById } from '../lib/venue-zones'
 import type { VenueZone } from '../lib/venue-zones'
-import { getDemoTaskStatusLabel, readDemoState, resetDemoState, type DemoState, type DemoTaskStatus } from '../lib/demo-state'
+import { getDemoTaskStatusLabel, readDemoState, resetDemoState, subscribeDemoState, type DemoState, type DemoTaskStatus } from '../lib/demo-state'
+import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep } from '../lib/demo-guide'
 import type { RouteState } from '../lib/router'
 import { AppFrame } from './AppFrame'
 
@@ -261,7 +262,10 @@ export function ReplayPage(props: {
   const [query, setQuery] = useState('')
   const [replayPlaying, setReplayPlaying] = useState(false)
   const [demoState, setDemoState] = useState(readDemoState)
+  const [demoNotice, setDemoNotice] = useState('')
   const [selectedEventId, setSelectedEventId] = useState<string | null>(props.events[0]?.event.event_id ?? null)
+
+  useEffect(() => subscribeDemoState(setDemoState), [])
 
   const replayStats = useMemo(() => {
     const sortedEvents = getSortedEvents(props.events)
@@ -481,9 +485,13 @@ export function ReplayPage(props: {
   ] as const
   const decisionChainItems = buildDecisionChainItems(demoState)
   const executionChainItems = buildExecutionChainItems(demoState)
+  const replayGuideStep = inferDemoGuideStep('replay', demoState)
+  const replayNextPath = getNextDemoPath('replay', demoState)
+  const replayHasFeedback = hasReachedDemoStatus(demoState.taskStatus, 'feedback_submitted')
 
   const handleResetDemoState = () => {
     setDemoState(resetDemoState())
+    setDemoNotice('演示状态已重置，可从 LivePage 重新确认派发。')
   }
 
   return (
@@ -525,6 +533,39 @@ export function ReplayPage(props: {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="demo-guide-card demo-guide-card--replay" aria-label="复盘演示引导">
+          <div className="demo-guide-progress">
+            <span>演示进度 {replayGuideStep.order} / {demoGuideTotalSteps}</span>
+            <strong>{replayGuideStep.title}</strong>
+          </div>
+          <p>
+            {replayHasFeedback
+              ? '任务已反馈，可将本次处置沉淀为入口拥堵预案。'
+              : '当前任务尚未完成反馈，可先在 Mobile H5 完成处理流程。'}
+          </p>
+          <div className="demo-guide-status">
+            <span>当前状态：{getDemoTaskStatusLabel(demoState.taskStatus)}</span>
+            <span>当前事件：{demoState.eventName}</span>
+          </div>
+          <div className="demo-guide-actions">
+            {replayHasFeedback ? (
+              <a className="demo-guide-action" href="#replay-playbook">查看经验沉淀</a>
+            ) : (
+              <button type="button" onClick={() => { window.location.hash = '#/mobile' }}>
+                打开工作人员任务端
+              </button>
+            )}
+            <button type="button" onClick={() => { window.location.hash = replayNextPath || '#/project/project-spring-2026/live' }}>
+              回到实时监控
+            </button>
+            <button className="demo-guide-reset" type="button" onClick={handleResetDemoState}>
+              重置演示状态
+            </button>
+          </div>
+          <small className="demo-guide-muted">本页用于回看入口 A 拥堵事件的识别、决策、执行和沉淀过程。</small>
+          {demoNotice ? <small className="demo-guide-notice">{demoNotice}</small> : null}
         </section>
 
         <nav className="replay-report-nav" aria-label="复盘报告导航">

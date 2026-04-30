@@ -40,7 +40,8 @@ import { getFeedbackStatusLabel, getFeedbackSummary, getLatestFeedbackByTaskId }
 import { getPriorityLabel, getPriorityQueueSummary, listPriorityQueueItems } from '../lib/priority-queue'
 import { getDemoTaskLifecycleById, getTaskLifecycleProgress, getTaskLifecycleStateLabel, listDemoTaskLifecycles } from '../lib/task-lifecycle'
 import { getMonitorSourceSummary, listMonitorSources, type MonitorSource } from '../lib/monitor-sources'
-import { getDemoTaskStatusLabel, readDemoState, resetDemoState, transitionDemoTaskStatus } from '../lib/demo-state'
+import { getDemoTaskStatusLabel, readDemoState, resetDemoState, subscribeDemoState, transitionDemoTaskStatus } from '../lib/demo-state'
+import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep, hasReachedDemoStatus } from '../lib/demo-guide'
 import {
   getHighestSeverityAlert,
   getMonitoringAlertSummary,
@@ -478,6 +479,9 @@ export function LivePage(props: {
   const [visionEventCandidate, setVisionEventCandidate] = useState<VisionEventCandidate | null>(null)
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(() => getHighestSeverityAlert()?.alertId ?? null)
   const [demoState, setDemoState] = useState(readDemoState)
+  const [demoNotice, setDemoNotice] = useState('')
+
+  useEffect(() => subscribeDemoState(setDemoState), [])
 
   const liveZoneModels = useMemo(
     () => buildLiveZoneViewModels(props.zoneStatuses, props.eventItems, props.sourceStatuses),
@@ -856,11 +860,17 @@ export function LivePage(props: {
       dispatchConfirmed: true,
     })
     setDemoState(nextState)
+    setDemoNotice('已确认派发，下一步请打开工作人员任务端。')
   }
 
   const handleResetDemoState = () => {
     setDemoState(resetDemoState())
+    setDemoNotice('演示状态已重置，等待项目经理确认派发。')
   }
+
+  const liveGuideStep = inferDemoGuideStep('live', demoState)
+  const liveNextPath = getNextDemoPath('live', demoState)
+  const liveGuideAction = hasReachedDemoStatus(demoState.taskStatus, 'dispatched') ? '打开工作人员任务端' : liveGuideStep.primaryActionLabel
 
   const appFrameProps = {
     title: '实时监控',
@@ -898,6 +908,34 @@ export function LivePage(props: {
             <strong>{demoState.dispatchConfirmed ? '当前状态：已确认派发' : '下一步：确认派发入口引导员'}</strong>
             <small>本地演示状态：{getDemoTaskStatusLabel(demoState.taskStatus)}。Agent 仅提供建议，最终派发由项目经理确认。</small>
           </div>
+
+          <section className="demo-guide-card demo-guide-card--live" aria-label="演示引导模式">
+            <div className="demo-guide-progress">
+              <span>演示进度 {liveGuideStep.order} / {demoGuideTotalSteps}</span>
+              <strong>{liveGuideStep.title}</strong>
+            </div>
+            <p>{hasReachedDemoStatus(demoState.taskStatus, 'dispatched') ? '已确认派发，下一步请打开 Mobile H5 进行工作人员处理。' : liveGuideStep.description}</p>
+            <div className="demo-guide-status">
+              <span>当前状态：{getDemoTaskStatusLabel(demoState.taskStatus)}</span>
+              <span>当前事件：{demoState.eventName}</span>
+            </div>
+            <div className="demo-guide-actions">
+              {hasReachedDemoStatus(demoState.taskStatus, 'dispatched') ? (
+                <button type="button" onClick={() => { window.location.hash = liveNextPath || '#/mobile' }}>
+                  {liveGuideAction}
+                </button>
+              ) : (
+                <button type="button" onClick={handleConfirmDemoDispatch}>
+                  {liveGuideAction}
+                </button>
+              )}
+              <button className="demo-guide-reset" type="button" onClick={handleResetDemoState}>
+                重置演示状态
+              </button>
+            </div>
+            <small className="demo-guide-muted">本地演示状态仅在当前浏览器内记录，不代表跨设备实时同步。</small>
+            {demoNotice ? <small className="demo-guide-notice">{demoNotice}</small> : null}
+          </section>
 
           <div className="metrics-row summary-strip">
             <div className="metric-card">

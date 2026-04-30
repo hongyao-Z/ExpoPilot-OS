@@ -30,6 +30,8 @@ export interface DemoState {
   history: DemoStateHistoryEntry[]
 }
 
+// Frontend-only demo state. This is local browser state for the guided demo,
+// not a production backend, dispatch service, or cross-device sync channel.
 const STATUS_LABELS: Record<DemoTaskStatus, string> = {
   pending_approval: '待确认',
   dispatched: '已派发',
@@ -159,4 +161,16 @@ export function appendDemoHistory(label: string, actorLabel: string) {
       history: [...current.history, createHistoryEntry(current.taskStatus, label, actorLabel, timestamp)],
     }
   })
+}
+
+export function subscribeDemoState(listener: (state: DemoState) => void) {
+  if (typeof window === 'undefined') return () => undefined
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== DEMO_STATE_STORAGE_KEY) return
+    listener(safeParseDemoState(event.newValue) ?? createDefaultDemoState())
+  }
+
+  window.addEventListener('storage', handleStorage)
+  return () => window.removeEventListener('storage', handleStorage)
 }

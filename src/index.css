@@ -10534,6 +10534,37 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
   line-height: 1.5;
 }
 
+.login-demo-guide {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 138, 42, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 138, 42, 0.055);
+}
+
+.login-demo-guide span,
+.login-demo-guide small {
+  color: rgba(255, 248, 243, 0.56);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.login-demo-guide strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff8f3;
+  font-size: 14px;
+}
+
+.login-demo-guide p {
+  margin: 6px 0 0;
+  color: rgba(255, 248, 243, 0.72);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .login-role-switcher-head div {
   display: grid;
   gap: 4px;
@@ -10596,6 +10627,91 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
   line-height: 1.4;
 }
 
+.demo-guide-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.92rem 1rem;
+  border: 1px solid rgba(255, 126, 47, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 126, 47, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.034);
+}
+
+.demo-guide-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.demo-guide-progress span,
+.demo-guide-muted,
+.demo-guide-notice {
+  color: rgba(248, 247, 244, 0.6);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.demo-guide-progress strong {
+  color: #fff8f3;
+  font-size: 0.98rem;
+}
+
+.demo-guide-card p {
+  margin: 0;
+  color: rgba(248, 247, 244, 0.74);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.demo-guide-status,
+.demo-guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.demo-guide-status span {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.6rem;
+  color: #ffd8c5;
+  font-size: 0.78rem;
+  font-weight: 850;
+  border: 1px solid rgba(255, 126, 47, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 126, 47, 0.075);
+}
+
+.demo-guide-actions button,
+.demo-guide-action {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.48rem 0.76rem;
+  color: #fff8f3;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 900;
+  border: 1px solid rgba(255, 208, 138, 0.36);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 138, 42, 0.92), rgba(200, 90, 30, 0.9));
+}
+
+.demo-guide-reset {
+  color: rgba(255, 248, 243, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+}
+
+.demo-guide-notice {
+  color: #dcffe8;
+}
+
 .mobile-command-grid .mobile-command-button {
   transition:
     transform 160ms ease,
@@ -10647,6 +10763,15 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
   border: 1px solid rgba(77, 210, 142, 0.28);
   border-radius: 14px;
   background: rgba(77, 210, 142, 0.09);
+}
+
+.mobile-replay-button {
+  min-height: 48px;
+  color: #fff8f3;
+  font-weight: 900;
+  border: 1px solid rgba(255, 208, 138, 0.36);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 138, 42, 0.9), rgba(200, 90, 30, 0.88));
 }
 
 .replay-report-hero small {
@@ -10706,5 +10831,16 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
 @media (max-width: 860px) {
   .live-demo-thread {
     grid-template-columns: 1fr;
+  }
+
+  .demo-guide-progress,
+  .demo-guide-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .demo-guide-actions button,
+  .demo-guide-action {
+    width: 100%;
   }
 }
