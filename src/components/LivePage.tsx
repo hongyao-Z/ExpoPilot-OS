@@ -40,6 +40,7 @@ import { getFeedbackStatusLabel, getFeedbackSummary, getLatestFeedbackByTaskId }
 import { getPriorityLabel, getPriorityQueueSummary, listPriorityQueueItems } from '../lib/priority-queue'
 import { getDemoTaskLifecycleById, getTaskLifecycleProgress, getTaskLifecycleStateLabel, listDemoTaskLifecycles } from '../lib/task-lifecycle'
 import { getMonitorSourceSummary, listMonitorSources, type MonitorSource } from '../lib/monitor-sources'
+import { getDemoTaskStatusLabel, readDemoState, resetDemoState, transitionDemoTaskStatus } from '../lib/demo-state'
 import {
   getHighestSeverityAlert,
   getMonitoringAlertSummary,
@@ -476,6 +477,7 @@ export function LivePage(props: {
   const [debugFrameIndex, setDebugFrameIndex] = useState(0)
   const [visionEventCandidate, setVisionEventCandidate] = useState<VisionEventCandidate | null>(null)
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(() => getHighestSeverityAlert()?.alertId ?? null)
+  const [demoState, setDemoState] = useState(readDemoState)
 
   const liveZoneModels = useMemo(
     () => buildLiveZoneViewModels(props.zoneStatuses, props.eventItems, props.sourceStatuses),
@@ -847,6 +849,19 @@ export function LivePage(props: {
     eventCandidate: visionEventCandidate,
   }
 
+  const handleConfirmDemoDispatch = () => {
+    const nextState = transitionDemoTaskStatus('dispatched', {
+      label: '项目经理已确认派发入口引导员',
+      actorLabel: '项目经理',
+      dispatchConfirmed: true,
+    })
+    setDemoState(nextState)
+  }
+
+  const handleResetDemoState = () => {
+    setDemoState(resetDemoState())
+  }
+
   const appFrameProps = {
     title: '实时监控',
     subtitle: '实时掌握现场状态、视觉输入与 Agent 建议。',
@@ -880,8 +895,8 @@ export function LivePage(props: {
 
           <div className="live-demo-thread" aria-label="当前演示主线">
             <span>当前事件：入口 A 人流拥堵异常处置</span>
-            <strong>下一步：确认派发入口引导员</strong>
-            <small>Agent 仅提供建议，最终派发由项目经理确认。</small>
+            <strong>{demoState.dispatchConfirmed ? '当前状态：已确认派发' : '下一步：确认派发入口引导员'}</strong>
+            <small>本地演示状态：{getDemoTaskStatusLabel(demoState.taskStatus)}。Agent 仅提供建议，最终派发由项目经理确认。</small>
           </div>
 
           <div className="metrics-row summary-strip">
@@ -1014,9 +1029,23 @@ export function LivePage(props: {
               </div>
 
               <div className="live-manager-confirmation-strip">
-                <span>项目经理确认</span>
-                <strong>{focusedDispatch ? managerConfirmationLabel[focusedDispatch.managerConfirmationStatus] : '等待建议'}</strong>
-                <small>下一步：确认派发入口引导员。确认后才进入任务状态流；当前不创建真实任务。</small>
+                <div>
+                  <span>项目经理确认</span>
+                  <strong>{demoState.dispatchConfirmed ? '已确认派发' : focusedDispatch ? managerConfirmationLabel[focusedDispatch.managerConfirmationStatus] : '等待建议'}</strong>
+                  <small>
+                    {demoState.dispatchConfirmed
+                      ? '已确认派发，任务进入已派发状态。该状态仅在当前浏览器内记录。'
+                      : '下一步：确认派发入口引导员。确认后才进入任务状态流；当前不创建真实任务。'}
+                  </small>
+                </div>
+                <div className="live-demo-state-actions">
+                  <button disabled={demoState.dispatchConfirmed} onClick={handleConfirmDemoDispatch} type="button">
+                    {demoState.dispatchConfirmed ? '已确认派发' : '确认派发入口引导员'}
+                  </button>
+                  <button className="ghost-button" onClick={handleResetDemoState} type="button">
+                    重置演示状态
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,8 +1,16 @@
 import { useMemo, useState } from 'react'
+import {
+  appendDemoHistory,
+  getDemoTaskStatusLabel,
+  readDemoState,
+  resetDemoState,
+  transitionDemoTaskStatus,
+  type DemoTaskStatus,
+} from '../lib/demo-state'
 import { getDemoTaskLifecycleById } from '../lib/task-lifecycle'
 import { getLatestFeedbackByTaskId } from '../lib/staff-feedback'
 
-type MobileTaskState = 'pending' | 'accepted' | 'en_route' | 'processing' | 'completed' | 'support' | 'exception'
+type MobileTaskState = DemoTaskStatus | 'support' | 'exception'
 
 interface TaskAction {
   id: string
@@ -19,42 +27,47 @@ interface TimelineStep {
 const focusTaskId = 'demo-task-entrance-fill-position'
 
 const stateLabels: Record<MobileTaskState, string> = {
-  pending: '待接收',
+  pending_approval: '待确认',
+  dispatched: '已派发',
   accepted: '已接收',
   en_route: '前往中',
-  processing: '处理中',
-  completed: '已反馈',
+  in_progress: '处理中',
+  feedback_submitted: '已反馈',
+  archived: '已归档',
   support: '请求支援',
   exception: '现场异常',
 }
 
 const stateTone: Record<MobileTaskState, string> = {
-  pending: 'warning',
+  pending_approval: 'warning',
+  dispatched: 'warning',
   accepted: 'active',
   en_route: 'active',
-  processing: 'active',
-  completed: 'success',
+  in_progress: 'active',
+  feedback_submitted: 'success',
+  archived: 'success',
   support: 'warning',
   exception: 'danger',
 }
 
-const timelineOrder: MobileTaskState[] = ['pending', 'accepted', 'en_route', 'processing', 'completed']
+const timelineOrder: DemoTaskStatus[] = ['pending_approval', 'dispatched', 'accepted', 'en_route', 'in_progress', 'feedback_submitted', 'archived']
 
 const timelineSteps: TimelineStep[] = [
-  { id: 'pending', label: '任务已派发', timeLabel: '10:06' },
+  { id: 'pending_approval', label: '等待项目经理确认', timeLabel: '待确认' },
+  { id: 'dispatched', label: '任务已派发', timeLabel: '待操作' },
   { id: 'accepted', label: '工作人员已接收', timeLabel: '待操作' },
   { id: 'en_route', label: '已到达现场', timeLabel: '待操作' },
-  { id: 'processing', label: '处理中', timeLabel: '待操作' },
-  { id: 'completed', label: '已反馈', timeLabel: '待操作' },
+  { id: 'in_progress', label: '处理中', timeLabel: '待操作' },
+  { id: 'feedback_submitted', label: '已反馈', timeLabel: '待操作' },
 ]
 
-const commandButtons: Array<{ target: MobileTaskState; label: string; tone?: 'secondary' | 'danger' }> = [
+const commandButtons: Array<{ target: MobileTaskState; label: string; tone?: 'secondary' | 'danger'; historyLabel?: string }> = [
   { target: 'accepted', label: '确认接收' },
   { target: 'en_route', label: '我已到达' },
-  { target: 'processing', label: '开始处理' },
-  { target: 'completed', label: '完成反馈' },
-  { target: 'support', label: '请求支援', tone: 'secondary' },
-  { target: 'exception', label: '现场异常', tone: 'danger' },
+  { target: 'in_progress', label: '开始处理' },
+  { target: 'feedback_submitted', label: '完成反馈' },
+  { target: 'support', label: '请求支援', tone: 'secondary', historyLabel: '工作人员请求现场支援' },
+  { target: 'exception', label: '现场异常', tone: 'danger', historyLabel: '工作人员上报现场异常' },
 ]
 
 const taskActions: TaskAction[] = [
@@ -67,23 +80,23 @@ const taskActions: TaskAction[] = [
 
 function getTimelineState(step: MobileTaskState, currentState: MobileTaskState) {
   if (currentState === 'support' || currentState === 'exception') {
-    return step === 'processing' ? 'current' : timelineOrder.indexOf(step) < timelineOrder.indexOf('processing') ? 'done' : 'pending'
+    return step === 'in_progress' ? 'current' : timelineOrder.indexOf(step as DemoTaskStatus) < timelineOrder.indexOf('in_progress') ? 'done' : 'pending'
   }
 
-  const currentIndex = timelineOrder.indexOf(currentState)
-  const stepIndex = timelineOrder.indexOf(step)
+  const currentIndex = timelineOrder.indexOf(currentState as DemoTaskStatus)
+  const stepIndex = timelineOrder.indexOf(step as DemoTaskStatus)
 
   if (stepIndex < currentIndex) return 'done'
   if (stepIndex === currentIndex) return 'current'
   return 'pending'
 }
 
-function getPrimaryCommandTarget(currentState: MobileTaskState): MobileTaskState {
-  if (currentState === 'pending') return 'accepted'
+function getPrimaryCommandTarget(currentState: MobileTaskState): MobileTaskState | null {
+  if (currentState === 'dispatched') return 'accepted'
   if (currentState === 'accepted') return 'en_route'
-  if (currentState === 'en_route') return 'processing'
-  if (currentState === 'processing') return 'completed'
-  return 'completed'
+  if (currentState === 'en_route') return 'in_progress'
+  if (currentState === 'in_progress') return 'feedback_submitted'
+  return null
 }
 
 function getCommandClassName(target: MobileTaskState, currentState: MobileTaskState, tone?: 'secondary' | 'danger') {
@@ -96,18 +109,62 @@ function getCommandClassName(target: MobileTaskState, currentState: MobileTaskSt
   return classes.join(' ')
 }
 
+function isCommandDisabled(target: MobileTaskState, currentState: MobileTaskState) {
+  if (target === 'support' || target === 'exception') return currentState === 'pending_approval'
+  return getPrimaryCommandTarget(currentState) !== target
+}
+
+function getTransitionLabel(status: DemoTaskStatus) {
+  if (status === 'accepted') return '工作人员已接收任务'
+  if (status === 'en_route') return '工作人员已到达入口 A 分流点'
+  if (status === 'in_progress') return '工作人员开始现场分流'
+  if (status === 'feedback_submitted') return '工作人员已提交完成反馈'
+  return `任务状态更新为${getDemoTaskStatusLabel(status)}`
+}
+
 export function MobileShowcasePage() {
   const task = getDemoTaskLifecycleById(focusTaskId)
   const latestFeedback = getLatestFeedbackByTaskId(focusTaskId)
-  const [taskState, setTaskState] = useState<MobileTaskState>('pending')
-  const [feedbackNote, setFeedbackNote] = useState('现场已完成分流，排队长度下降，需要继续观察 5 分钟。')
+  const [demoState, setDemoState] = useState(readDemoState)
+  const [taskState, setTaskState] = useState<MobileTaskState>(() => readDemoState().taskStatus)
+  const [feedbackNote, setFeedbackNote] = useState(() => readDemoState().lastFeedbackText)
+  const [localNotice, setLocalNotice] = useState('')
 
   const progressLabel = useMemo(() => {
     if (taskState === 'support') return '已通知项目经理，请等待支援确认'
     if (taskState === 'exception') return '现场情况异常，请保持安全距离并等待指令'
-    if (taskState === 'completed') return '反馈已记录，任务进入已反馈状态'
+    if (taskState === 'pending_approval') return '等待项目经理确认派发；当前手机端仅展示任务预览'
+    if (taskState === 'dispatched') return '任务已派发，请确认接收'
+    if (taskState === 'feedback_submitted') return '反馈已记录，任务进入已反馈状态'
     return '请按任务步骤处理入口 A 人流拥堵'
   }, [taskState])
+
+  const applyTaskStatus = (target: MobileTaskState, historyLabel?: string) => {
+    if (target === 'support' || target === 'exception') {
+      const nextState = appendDemoHistory(historyLabel ?? stateLabels[target], '入口引导员 A')
+      setDemoState(nextState)
+      setTaskState(target)
+      setLocalNotice(target === 'support' ? '支援请求已记录在当前浏览器演示状态中。' : '现场异常已记录在当前浏览器演示状态中。')
+      return
+    }
+
+    const nextState = transitionDemoTaskStatus(target, {
+      label: getTransitionLabel(target),
+      actorLabel: '入口引导员 A',
+      lastFeedbackText: target === 'feedback_submitted' ? feedbackNote : undefined,
+    })
+    setDemoState(nextState)
+    setTaskState(nextState.taskStatus)
+    setLocalNotice('')
+  }
+
+  const handleResetDemoState = () => {
+    const nextState = resetDemoState()
+    setDemoState(nextState)
+    setTaskState(nextState.taskStatus)
+    setFeedbackNote(nextState.lastFeedbackText)
+    setLocalNotice('演示状态已重置，等待项目经理确认派发。')
+  }
 
   const goToLive = () => {
     window.location.hash = '#/project/project-spring-2026/live'
@@ -151,8 +208,9 @@ export function MobileShowcasePage() {
           </div>
           <div className="mobile-dispatch-source">
             <span>派发来源</span>
-            <strong>项目经理确认 / DispatchAgent 建议</strong>
+            <strong>{demoState.dispatchConfirmed ? '项目经理确认 / DispatchAgent 建议' : '等待项目经理确认派发'}</strong>
           </div>
+          <p className="mobile-command-hint">本页读取当前浏览器内的本地演示状态，不代表跨设备实时同步。</p>
         </section>
 
         <section className="mobile-card mobile-action-card">
@@ -182,15 +240,18 @@ export function MobileShowcasePage() {
             {commandButtons.map((button) => (
               <button
                 className={getCommandClassName(button.target, taskState, button.tone)}
+                disabled={isCommandDisabled(button.target, taskState)}
                 key={button.target}
                 type="button"
-                onClick={() => setTaskState(button.target)}
+                onClick={() => applyTaskStatus(button.target, button.historyLabel)}
               >
                 {button.label}
               </button>
             ))}
           </div>
+          {taskState === 'pending_approval' ? <p className="mobile-command-hint">待项目经理确认派发后，工作人员再开始接收和处理。</p> : null}
           <p className="mobile-command-hint">请求支援 / 现场异常用于无法独立处理时上报，不会写入真实后端。</p>
+          {localNotice ? <p className="mobile-success-note">{localNotice}</p> : null}
         </section>
 
         <section className="mobile-card mobile-feedback-card mobile-worker-feedback">
@@ -203,7 +264,7 @@ export function MobileShowcasePage() {
             <span>排队长度下降</span>
             <span>需要继续观察</span>
           </div>
-          {taskState === 'completed' ? <p className="mobile-success-note">反馈已记录，项目经理可在复盘页查看。</p> : null}
+          {taskState === 'feedback_submitted' ? <p className="mobile-success-note">反馈已记录，项目经理可在复盘页查看。</p> : null}
           <label className="mobile-note-field">
             <span>现场备注</span>
             <textarea
@@ -238,6 +299,7 @@ export function MobileShowcasePage() {
 
         <footer className="mobile-cta mobile-worker-cta">
           <button onClick={goToLive} type="button">查看桌面控制台</button>
+          <button className="mobile-ghost-button" onClick={handleResetDemoState} type="button">重置演示状态</button>
         </footer>
       </section>
     </main>

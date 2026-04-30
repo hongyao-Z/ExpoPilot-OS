@@ -22,6 +22,7 @@ import { getStaffById } from '../lib/staff-pool'
 import type { StaffPoolMember, StaffRole } from '../lib/staff-pool'
 import { getVenueZoneById } from '../lib/venue-zones'
 import type { VenueZone } from '../lib/venue-zones'
+import { getDemoTaskStatusLabel, readDemoState, resetDemoState, type DemoState, type DemoTaskStatus } from '../lib/demo-state'
 import type { RouteState } from '../lib/router'
 import { AppFrame } from './AppFrame'
 
@@ -153,6 +154,71 @@ const EXECUTION_CHAIN_ITEMS = [
   { label: '归档', time: '10:12', detail: '系统写入审计记录，可进入复盘。' },
 ] as const
 
+const DEMO_EXECUTION_STATUS_ORDER: DemoTaskStatus[] = [
+  'pending_approval',
+  'dispatched',
+  'accepted',
+  'en_route',
+  'in_progress',
+  'feedback_submitted',
+  'archived',
+]
+
+function hasReachedDemoStatus(current: DemoTaskStatus, target: DemoTaskStatus) {
+  return DEMO_EXECUTION_STATUS_ORDER.indexOf(current) >= DEMO_EXECUTION_STATUS_ORDER.indexOf(target)
+}
+
+function buildDecisionChainItems(demoState: DemoState) {
+  return DECISION_CHAIN_ITEMS.map((item) => {
+    if (item.label !== '项目经理确认') return item
+
+    return {
+      ...item,
+      detail: demoState.dispatchConfirmed
+        ? '项目经理已确认派发入口引导员，任务进入已派发状态。'
+        : '等待项目经理确认；DispatchAgent 只提供建议，不直接派发。',
+    }
+  })
+}
+
+function buildExecutionChainItems(demoState: DemoState) {
+  const feedbackDetail = demoState.lastFeedbackText || '等待工作人员提交现场反馈。'
+
+  return [
+    { ...EXECUTION_CHAIN_ITEMS[0], status: 'done' },
+    {
+      ...EXECUTION_CHAIN_ITEMS[1],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'dispatched') ? '项目经理已确认，任务派发给入口引导员 A。' : '等待项目经理确认派发。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'dispatched') ? 'done' : 'pending',
+    },
+    {
+      ...EXECUTION_CHAIN_ITEMS[2],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'accepted') ? '入口引导员 A 已接收任务。' : '等待工作人员确认接收。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'accepted') ? 'done' : 'pending',
+    },
+    {
+      ...EXECUTION_CHAIN_ITEMS[3],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'en_route') ? '入口引导员 A 已前往入口 A 分流点。' : '等待工作人员到达现场。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'en_route') ? 'done' : 'pending',
+    },
+    {
+      ...EXECUTION_CHAIN_ITEMS[4],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'in_progress') ? '工作人员正在引导观众前往备用通道。' : '等待现场开始处理。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'in_progress') ? 'current' : 'pending',
+    },
+    {
+      ...EXECUTION_CHAIN_ITEMS[5],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'feedback_submitted') ? feedbackDetail : '等待工作人员提交完成反馈。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'feedback_submitted') ? 'done' : 'pending',
+    },
+    {
+      ...EXECUTION_CHAIN_ITEMS[6],
+      detail: hasReachedDemoStatus(demoState.taskStatus, 'archived') ? '任务已进入复盘归档。' : '等待复盘归档。',
+      status: hasReachedDemoStatus(demoState.taskStatus, 'archived') ? 'done' : 'pending',
+    },
+  ] as const
+}
+
 const RESPONSIBILITY_CHAIN_ITEMS = [
   { label: '系统识别异常', owner: 'ExpoPilot OS', detail: '入口 A 监控源触发拥堵判断。' },
   { label: '审核解释', owner: 'EventReviewAgent', detail: '说明异常、证据和风险等级。' },
@@ -194,6 +260,7 @@ export function ReplayPage(props: {
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [query, setQuery] = useState('')
   const [replayPlaying, setReplayPlaying] = useState(false)
+  const [demoState, setDemoState] = useState(readDemoState)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(props.events[0]?.event.event_id ?? null)
 
   const replayStats = useMemo(() => {
@@ -408,6 +475,16 @@ export function ReplayPage(props: {
     ? buildReplayMonitoringTimeline(selectedEvent, selectedTaskLifecycle, selectedDemoFeedback, selectedAuditLogs, selectedDualAgentReplay)
     : replayStats.timeline
   const operators = useMemo(() => Array.from(new Set(props.auditLogs.map((log) => log.operator_id))), [props.auditLogs])
+  const replayReportMetrics = [
+    ...REPORT_METRICS,
+    { label: '当前任务状态', value: getDemoTaskStatusLabel(demoState.taskStatus) },
+  ] as const
+  const decisionChainItems = buildDecisionChainItems(demoState)
+  const executionChainItems = buildExecutionChainItems(demoState)
+
+  const handleResetDemoState = () => {
+    setDemoState(resetDemoState())
+  }
 
   return (
     <AppFrame
@@ -441,7 +518,7 @@ export function ReplayPage(props: {
             <p>{REPORT_SUMMARY}</p>
           </div>
           <div className="replay-report-metrics">
-            {REPORT_METRICS.map((metric) => (
+            {replayReportMetrics.map((metric) => (
               <article key={metric.label}>
                 <span>{metric.label}</span>
                 <strong>{metric.value}</strong>
@@ -461,7 +538,7 @@ export function ReplayPage(props: {
 
         <section className="replay-report-grid" aria-label="证据链与决策链">
           <ReportChainCard anchorId="replay-evidence" eyebrow="01 证据链" title="为什么判断异常" items={EVIDENCE_CHAIN_ITEMS} />
-          <ReportChainCard anchorId="replay-decision" eyebrow="02 决策链" title="Agent 建议与经理确认" items={DECISION_CHAIN_ITEMS} />
+          <ReportChainCard anchorId="replay-decision" eyebrow="02 决策链" title="Agent 建议与经理确认" items={decisionChainItems} />
         </section>
 
         <section className="replay-execution-panel" id="replay-execution" aria-label="执行链">
@@ -473,12 +550,39 @@ export function ReplayPage(props: {
             <small>入口 A / 5 分钟内完成分流</small>
           </div>
           <div className="replay-execution-track">
-            {EXECUTION_CHAIN_ITEMS.map((item, index) => (
-              <article className="replay-execution-step" key={item.label}>
+            {executionChainItems.map((item, index) => (
+              <article className={`replay-execution-step replay-execution-step--${item.status}`} key={item.label}>
                 <span>{item.time}</span>
                 <strong>{item.label}</strong>
                 <p>{item.detail}</p>
                 <i>{index + 1}</i>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="replay-demo-state-panel" aria-label="演示状态记录">
+          <div className="replay-section-head">
+            <div>
+              <span>本地演示状态</span>
+              <h3>{demoState.eventName}</h3>
+            </div>
+            <button className="ghost-button" onClick={handleResetDemoState} type="button">重置演示状态</button>
+          </div>
+          <div className="replay-demo-state-summary">
+            <span>项目经理确认：{demoState.dispatchConfirmed ? '已确认' : '待确认'}</span>
+            <span>任务状态：{getDemoTaskStatusLabel(demoState.taskStatus)}</span>
+            <span>执行人：{demoState.assigneeName}</span>
+          </div>
+          {demoState.taskStatus === 'feedback_submitted' || demoState.taskStatus === 'archived' ? (
+            <p className="replay-demo-feedback">最新反馈：{demoState.lastFeedbackText}</p>
+          ) : null}
+          <div className="replay-demo-history-list">
+            {demoState.history.slice(-6).map((entry) => (
+              <article key={entry.id}>
+                <span>{entry.timestampLabel}</span>
+                <strong>{entry.label}</strong>
+                <small>{entry.actorLabel} / {getDemoTaskStatusLabel(entry.status)}</small>
               </article>
             ))}
           </div>
