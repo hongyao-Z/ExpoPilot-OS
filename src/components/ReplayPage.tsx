@@ -116,7 +116,7 @@ const MANAGER_CONFIRMATION_LABELS: Record<ManagerConfirmationStatus, string> = {
 
 const REPORT_METRICS = [
   { label: '事件等级', value: '中高风险' },
-  { label: '处理结果', value: '已完成' },
+  { label: '处理结果', value: '已反馈' },
   { label: '总用时', value: '5分40秒' },
   { label: '响应时间', value: '42秒' },
   { label: '人工接管', value: '0' },
@@ -433,10 +433,11 @@ export function ReplayPage(props: {
           <article className={`panel feedback-banner ${feedbackClassName(props.feedback)}`}>{props.feedback.message}</article>
         ) : null}
 
-        <section className="replay-report-hero" aria-label="复盘报告摘要">
+        <section className="replay-report-hero" id="replay-summary" aria-label="复盘报告摘要">
           <div className="replay-report-title">
             <span className="eyebrow">复盘报告摘要</span>
             <h2>入口 A 人流拥堵处置复盘</h2>
+            <small>本页用于回看入口 A 拥堵事件的识别、决策、执行与预案整理过程。</small>
             <p>{REPORT_SUMMARY}</p>
           </div>
           <div className="replay-report-metrics">
@@ -449,15 +450,24 @@ export function ReplayPage(props: {
           </div>
         </section>
 
+        <nav className="replay-report-nav" aria-label="复盘报告导航">
+          <a href="#replay-summary">复盘摘要</a>
+          <a href="#replay-evidence">证据链</a>
+          <a href="#replay-decision">决策链</a>
+          <a href="#replay-execution">执行链</a>
+          <a href="#replay-responsibility">责任链</a>
+          <a href="#replay-playbook">经验沉淀</a>
+        </nav>
+
         <section className="replay-report-grid" aria-label="证据链与决策链">
-          <ReportChainCard eyebrow="证据链" title="为什么判断异常" items={EVIDENCE_CHAIN_ITEMS} />
-          <ReportChainCard eyebrow="决策链" title="Agent 建议与经理确认" items={DECISION_CHAIN_ITEMS} />
+          <ReportChainCard anchorId="replay-evidence" eyebrow="01 证据链" title="为什么判断异常" items={EVIDENCE_CHAIN_ITEMS} />
+          <ReportChainCard anchorId="replay-decision" eyebrow="02 决策链" title="Agent 建议与经理确认" items={DECISION_CHAIN_ITEMS} />
         </section>
 
-        <section className="replay-execution-panel" aria-label="执行链">
+        <section className="replay-execution-panel" id="replay-execution" aria-label="执行链">
           <div className="replay-section-head">
             <div>
-              <span>执行链</span>
+              <span>03 执行链</span>
               <h3>从任务派发到完成反馈</h3>
             </div>
             <small>入口 A / 5 分钟内完成分流</small>
@@ -475,10 +485,10 @@ export function ReplayPage(props: {
         </section>
 
         <section className="replay-report-grid replay-report-grid--wide" aria-label="责任链与经验沉淀">
-          <article className="replay-responsibility-panel">
+          <article className="replay-responsibility-panel" id="replay-responsibility">
             <div className="replay-section-head">
               <div>
-                <span>责任链</span>
+                <span>04 责任链</span>
                 <h3>谁确认、谁处理、谁反馈</h3>
               </div>
               <small>全程可追溯</small>
@@ -494,10 +504,10 @@ export function ReplayPage(props: {
             </div>
           </article>
 
-          <article className="replay-playbook-card">
+          <article className="replay-playbook-card" id="replay-playbook">
             <div className="replay-section-head">
               <div>
-                <span>经验沉淀</span>
+                <span>05 经验沉淀</span>
                 <h3>沉淀为预案模板</h3>
               </div>
               <small>静态演示</small>
@@ -511,6 +521,7 @@ export function ReplayPage(props: {
               ))}
             </div>
             <button type="button">沉淀为预案模板</button>
+            <p className="replay-playbook-note">演示态：该动作会将本次处置流程归档为入口拥堵预案。</p>
           </article>
         </section>
 
@@ -1386,9 +1397,9 @@ function BreakdownCard(props: { title: string; items: { label: string; value: st
   )
 }
 
-function ReportChainCard(props: { eyebrow: string; title: string; items: readonly { label: string; detail: string }[] }) {
+function ReportChainCard(props: { anchorId: string; eyebrow: string; title: string; items: readonly { label: string; detail: string }[] }) {
   return (
-    <article className="replay-report-chain-card">
+    <article className="replay-report-chain-card" id={props.anchorId}>
       <div className="replay-section-head">
         <div>
           <span>{props.eyebrow}</span>

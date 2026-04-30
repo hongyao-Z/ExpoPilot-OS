@@ -13,11 +13,19 @@ function createDemoCredentials() {
 }
 
 function getRoleChipLabel(role: RoleType) {
-  if (role === 'organizer') return '运营管理员'
-  if (role === 'staff') return '普通成员'
+  if (role === 'organizer') return '项目经理'
+  if (role === 'staff') return '工作人员任务端'
   if (role === 'agency') return '执行负责人'
   if (role === 'brand') return '品牌方'
   return '系统管理员'
+}
+
+function getRoleChipDescription(role: RoleType) {
+  if (role === 'organizer') return '确认派发与查看全局指挥台'
+  if (role === 'staff') return '查看入口 A 现场处理任务'
+  if (role === 'agency') return '查看执行侧协同视图'
+  if (role === 'brand') return '查看展台与活动数据'
+  return '查看系统管理视图'
 }
 
 const capabilityItems = [
@@ -240,11 +248,15 @@ export function LoginPage(props: {
               </span>
               沙盒环境快速登录
             </button>
+            <p className="login-sandbox-helper">无需账号，选择角色进入演示环境。</p>
 
             {showSandboxRoles ? (
               <section className="login-role-switcher" aria-label="切换角色">
                 <div className="login-role-switcher-head">
-                  <strong>切换角色</strong>
+                  <div>
+                    <strong>选择演示身份</strong>
+                    <small>Agent 仅提供建议，最终派发由项目经理确认。</small>
+                  </div>
                   <span aria-hidden="true">⌄</span>
                 </div>
                 <div className="login-role-chips">
@@ -258,7 +270,8 @@ export function LoginPage(props: {
                       }}
                       type="button"
                     >
-                      {getRoleChipLabel(profile.role)}
+                      <strong>{getRoleChipLabel(profile.role)}</strong>
+                      <span>{getRoleChipDescription(profile.role)}</span>
                     </button>
                   ))}
                 </div>

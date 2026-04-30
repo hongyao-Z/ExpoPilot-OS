@@ -23,7 +23,7 @@ const stateLabels: Record<MobileTaskState, string> = {
   accepted: '已接收',
   en_route: '前往中',
   processing: '处理中',
-  completed: '已完成',
+  completed: '已反馈',
   support: '请求支援',
   exception: '现场异常',
 }
@@ -45,7 +45,16 @@ const timelineSteps: TimelineStep[] = [
   { id: 'accepted', label: '工作人员已接收', timeLabel: '待操作' },
   { id: 'en_route', label: '已到达现场', timeLabel: '待操作' },
   { id: 'processing', label: '处理中', timeLabel: '待操作' },
-  { id: 'completed', label: '已完成反馈', timeLabel: '待操作' },
+  { id: 'completed', label: '已反馈', timeLabel: '待操作' },
+]
+
+const commandButtons: Array<{ target: MobileTaskState; label: string; tone?: 'secondary' | 'danger' }> = [
+  { target: 'accepted', label: '确认接收' },
+  { target: 'en_route', label: '我已到达' },
+  { target: 'processing', label: '开始处理' },
+  { target: 'completed', label: '完成反馈' },
+  { target: 'support', label: '请求支援', tone: 'secondary' },
+  { target: 'exception', label: '现场异常', tone: 'danger' },
 ]
 
 const taskActions: TaskAction[] = [
@@ -69,6 +78,24 @@ function getTimelineState(step: MobileTaskState, currentState: MobileTaskState) 
   return 'pending'
 }
 
+function getPrimaryCommandTarget(currentState: MobileTaskState): MobileTaskState {
+  if (currentState === 'pending') return 'accepted'
+  if (currentState === 'accepted') return 'en_route'
+  if (currentState === 'en_route') return 'processing'
+  if (currentState === 'processing') return 'completed'
+  return 'completed'
+}
+
+function getCommandClassName(target: MobileTaskState, currentState: MobileTaskState, tone?: 'secondary' | 'danger') {
+  const classes = ['mobile-command-button']
+  if (target === getPrimaryCommandTarget(currentState)) classes.push('mobile-command-primary')
+  else classes.push('mobile-command-muted')
+  if (target === currentState) classes.push('is-current')
+  if (tone === 'secondary') classes.push('mobile-command-secondary')
+  if (tone === 'danger') classes.push('mobile-command-danger')
+  return classes.join(' ')
+}
+
 export function MobileShowcasePage() {
   const task = getDemoTaskLifecycleById(focusTaskId)
   const latestFeedback = getLatestFeedbackByTaskId(focusTaskId)
@@ -78,7 +105,7 @@ export function MobileShowcasePage() {
   const progressLabel = useMemo(() => {
     if (taskState === 'support') return '已通知项目经理，请等待支援确认'
     if (taskState === 'exception') return '现场情况异常，请保持安全距离并等待指令'
-    if (taskState === 'completed') return '反馈已提交，等待项目经理归档'
+    if (taskState === 'completed') return '反馈已记录，任务进入已反馈状态'
     return '请按任务步骤处理入口 A 人流拥堵'
   }, [taskState])
 
@@ -99,8 +126,8 @@ export function MobileShowcasePage() {
 
         <section className={`mobile-card mobile-task-hero mobile-task-hero--${stateTone[taskState]}`}>
           <div className="mobile-task-status-row">
-            <span>当前任务</span>
-            <strong>{stateLabels[taskState]}</strong>
+            <span>当前状态</span>
+            <strong>当前状态：{stateLabels[taskState]}</strong>
           </div>
           <h1>入口 A 人流拥堵引导</h1>
           <p>{progressLabel}</p>
@@ -149,16 +176,21 @@ export function MobileShowcasePage() {
         <section className="mobile-card mobile-command-card">
           <div className="mobile-section-head">
             <span>现场操作</span>
-            <strong>点击后只改变演示状态</strong>
+            <strong>优先点击高亮按钮</strong>
           </div>
           <div className="mobile-command-grid">
-            <button type="button" onClick={() => setTaskState('accepted')}>确认接收</button>
-            <button type="button" onClick={() => setTaskState('en_route')}>我已到达</button>
-            <button type="button" onClick={() => setTaskState('processing')}>开始处理</button>
-            <button type="button" onClick={() => setTaskState('completed')}>完成反馈</button>
-            <button className="mobile-command-secondary" type="button" onClick={() => setTaskState('support')}>请求支援</button>
-            <button className="mobile-command-danger" type="button" onClick={() => setTaskState('exception')}>现场异常</button>
+            {commandButtons.map((button) => (
+              <button
+                className={getCommandClassName(button.target, taskState, button.tone)}
+                key={button.target}
+                type="button"
+                onClick={() => setTaskState(button.target)}
+              >
+                {button.label}
+              </button>
+            ))}
           </div>
+          <p className="mobile-command-hint">请求支援 / 现场异常用于无法独立处理时上报，不会写入真实后端。</p>
         </section>
 
         <section className="mobile-card mobile-feedback-card mobile-worker-feedback">
@@ -171,9 +203,15 @@ export function MobileShowcasePage() {
             <span>排队长度下降</span>
             <span>需要继续观察</span>
           </div>
+          {taskState === 'completed' ? <p className="mobile-success-note">反馈已记录，项目经理可在复盘页查看。</p> : null}
           <label className="mobile-note-field">
             <span>现场备注</span>
-            <textarea value={feedbackNote} onChange={(event) => setFeedbackNote(event.target.value)} rows={4} />
+            <textarea
+              value={feedbackNote}
+              onChange={(event) => setFeedbackNote(event.target.value)}
+              placeholder="可填写现场情况，例如：已完成分流，备用通道压力正常"
+              rows={4}
+            />
           </label>
           {latestFeedback ? (
             <p className="mobile-feedback-hint">最近一次系统反馈：{latestFeedback.timestampLabel} / 入口引导员 A 已到达现场。</p>

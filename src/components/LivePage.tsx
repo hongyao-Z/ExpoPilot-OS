@@ -878,6 +878,12 @@ export function LivePage(props: {
             </div>
           </div>
 
+          <div className="live-demo-thread" aria-label="当前演示主线">
+            <span>当前事件：入口 A 人流拥堵异常处置</span>
+            <strong>下一步：确认派发入口引导员</strong>
+            <small>Agent 仅提供建议，最终派发由项目经理确认。</small>
+          </div>
+
           <div className="metrics-row summary-strip">
             <div className="metric-card">
               <span>当前视图</span>
@@ -975,7 +981,7 @@ export function LivePage(props: {
               <div className="live-dual-agent-grid">
                 <article className="live-agent-review-card">
                   <div className="live-closure-card__head">
-                    <span>EventReviewAgent</span>
+                    <span>EventReviewAgent · 异常审核与证据解释</span>
                     <strong>{agentPanelView.review ? getReviewRiskLabel(agentPanelView.review.riskLevel) : '无审核'}</strong>
                   </div>
                   <h4>{agentPanelView.review?.finding.title ?? '等待告警'}</h4>
@@ -990,7 +996,7 @@ export function LivePage(props: {
 
                 <article className="live-agent-review-card live-agent-dispatch-card">
                   <div className="live-closure-card__head">
-                    <span>DispatchAgent</span>
+                    <span>DispatchAgent · 处置建议与人员推荐</span>
                     <strong>{agentPanelView.dispatch ? managerConfirmationLabel[agentPanelView.dispatch.managerConfirmationStatus] : '无派发建议'}</strong>
                   </div>
                   <h4>{agentPanelView.dispatch?.recommendedActionLabel ?? '等待派发建议'}</h4>
@@ -1010,7 +1016,7 @@ export function LivePage(props: {
               <div className="live-manager-confirmation-strip">
                 <span>项目经理确认</span>
                 <strong>{focusedDispatch ? managerConfirmationLabel[focusedDispatch.managerConfirmationStatus] : '等待建议'}</strong>
-                <small>确认后才进入任务状态流；当前不创建真实任务。</small>
+                <small>下一步：确认派发入口引导员。确认后才进入任务状态流；当前不创建真实任务。</small>
               </div>
             </div>
           </div>
