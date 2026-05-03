@@ -1,4 +1,4 @@
-﻿export type AgentDecisionProducerKey = 'local_rule_based' | 'mock_agent' | 'remote_agent_placeholder'
+﻿export type AgentDecisionProducerKey = 'local_rule_based' | 'mock_agent' | 'llm' | 'remote_agent_placeholder'
 
 const DEFAULT_AGENT_DECISION_PRODUCER: AgentDecisionProducerKey = 'local_rule_based'
 
@@ -17,6 +17,8 @@ export function getActiveAgentDecisionProducer(): AgentDecisionProducerKey {
 
 export function getAgentDecisionProducerLabel(producer: AgentDecisionProducerKey): string {
   switch (producer) {
+    case 'llm':
+      return 'LLM Agent'
     case 'mock_agent':
       return 'Mock Agent'
     case 'remote_agent_placeholder':

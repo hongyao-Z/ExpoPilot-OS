@@ -4,6 +4,7 @@ import { getActiveAgentClawExplanationConfig } from './agent-claw-config'
 import { resolveRemoteClawPlaceholder, type ClawExplanationInput } from './agent-claw-explanation'
 import { getAgentExplanationSourceLabel, type AgentExplanationSourceKey } from './agent-explanation-config'
 import type { AgentExplanationSet, AgentLifecycleState } from './agent-decision-adapter'
+import { buildLlmExplanations } from './agent-explanation-llm'
 
 export interface AgentResolvedExplanations {
   explanations: AgentExplanationSet
@@ -17,6 +18,12 @@ export async function resolveAgentExplanations(
   preferredSource: AgentExplanationSourceKey,
 ): Promise<AgentResolvedExplanations> {
   switch (preferredSource) {
+    case 'llm':
+      return resolveWithTemplateFallback(
+        () => buildLlmExplanations(context, state, context.focusEvent),
+        () => buildFallbackTemplateExplanations(context.focusEvent, state),
+        'llm',
+      )
     case 'mock_reasoner':
       return resolveWithTemplateFallback(
         () => buildMockReasonerExplanations(context.focusEvent, state),

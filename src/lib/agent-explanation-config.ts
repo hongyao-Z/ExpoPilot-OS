@@ -1,4 +1,4 @@
-export type AgentExplanationSourceKey = 'fallback_template' | 'mock_reasoner' | 'remote_claw_placeholder'
+export type AgentExplanationSourceKey = 'fallback_template' | 'mock_reasoner' | 'llm' | 'remote_claw_placeholder'
 
 const DEFAULT_AGENT_EXPLANATION_SOURCE: AgentExplanationSourceKey = 'fallback_template'
 
@@ -17,6 +17,8 @@ export function getActiveAgentExplanationSource(): AgentExplanationSourceKey {
 
 export function getAgentExplanationSourceLabel(source: AgentExplanationSourceKey): string {
   switch (source) {
+    case 'llm':
+      return 'LLM Explainer'
     case 'mock_reasoner':
       return 'Mock Reasoner'
     case 'remote_claw_placeholder':

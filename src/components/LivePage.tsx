@@ -40,7 +40,8 @@ import { getFeedbackStatusLabel, getFeedbackSummary, getLatestFeedbackByTaskId }
 import { getPriorityLabel, getPriorityQueueSummary, listPriorityQueueItems } from '../lib/priority-queue'
 import { getDemoTaskLifecycleById, getTaskLifecycleProgress, getTaskLifecycleStateLabel, listDemoTaskLifecycles } from '../lib/task-lifecycle'
 import { getMonitorSourceSummary, listMonitorSources, type MonitorSource } from '../lib/monitor-sources'
-import { getDemoTaskStatusLabel, readDemoState, resetDemoState, subscribeDemoState, transitionDemoTaskStatus } from '../lib/demo-state'
+import { getDemoTaskStatusLabel, readDemoState, subscribeDemoState } from '../lib/demo-state'
+import { confirmDispatch, getCurrentTask, getRuntimeSourceLabel, resetDemo } from '../lib/api-client'
 import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep, hasReachedDemoStatus } from '../lib/demo-guide'
 import {
   getHighestSeverityAlert,
@@ -453,6 +454,7 @@ export function LivePage(props: {
   onLogout: () => void
   onNavigate: (route: RouteState) => void
   onReset: () => void
+  onConnectLiveCamera: (request?: { zoneType?: VisionZoneHint }) => void
   onReplayCameraSignal: (request?: { zoneType?: VisionZoneHint }) => void
   onRevokeTask: (taskId: string) => void
   onSimulateSignal: () => void
@@ -480,8 +482,27 @@ export function LivePage(props: {
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(() => getHighestSeverityAlert()?.alertId ?? null)
   const [demoState, setDemoState] = useState(readDemoState)
   const [demoNotice, setDemoNotice] = useState('')
+  const [demoSourceLabel, setDemoSourceLabel] = useState(getRuntimeSourceLabel('local'))
 
-  useEffect(() => subscribeDemoState(setDemoState), [])
+  useEffect(() => {
+    let cancelled = false
+
+    getCurrentTask().then((result) => {
+      if (cancelled) return
+      setDemoState(result.data)
+      setDemoSourceLabel(getRuntimeSourceLabel(result.source))
+    })
+
+    const unsubscribe = subscribeDemoState((nextState) => {
+      setDemoState(nextState)
+      setDemoSourceLabel(getRuntimeSourceLabel('local'))
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [])
 
   const liveZoneModels = useMemo(
     () => buildLiveZoneViewModels(props.zoneStatuses, props.eventItems, props.sourceStatuses),
@@ -853,18 +874,17 @@ export function LivePage(props: {
     eventCandidate: visionEventCandidate,
   }
 
-  const handleConfirmDemoDispatch = () => {
-    const nextState = transitionDemoTaskStatus('dispatched', {
-      label: '项目经理已确认派发入口引导员',
-      actorLabel: '项目经理',
-      dispatchConfirmed: true,
-    })
-    setDemoState(nextState)
-    setDemoNotice('已确认派发，下一步请打开工作人员任务端。')
+  const handleConfirmDemoDispatch = async () => {
+    const result = await confirmDispatch()
+    setDemoState(result.data)
+    setDemoSourceLabel(getRuntimeSourceLabel(result.source))
+    setDemoNotice(result.source === 'backend' ? '已通过本地后端服务确认派发，下一步请打开工作人员任务端。' : '已确认派发，下一步请打开工作人员任务端。')
   }
 
-  const handleResetDemoState = () => {
-    setDemoState(resetDemoState())
+  const handleResetDemoState = async () => {
+    const result = await resetDemo()
+    setDemoState(result.data)
+    setDemoSourceLabel(getRuntimeSourceLabel(result.source))
     setDemoNotice('演示状态已重置，等待项目经理确认派发。')
   }
 
@@ -897,6 +917,7 @@ export function LivePage(props: {
             <div className="inline-actions">
               <button onClick={props.onSimulateSignal}>触发 mock 事件</button>
               <button onClick={handleReplayCameraSignal}>回放当前摄像头</button>
+              <button onClick={() => props.onConnectLiveCamera({ zoneType: activeVisionZoneType })}>接入实时摄像头</button>
               <button className="ghost-button" onClick={props.onReset}>
                 重置快照
               </button>
@@ -933,7 +954,7 @@ export function LivePage(props: {
                 重置演示状态
               </button>
             </div>
-            <small className="demo-guide-muted">本地演示状态仅在当前浏览器内记录，不代表跨设备实时同步。</small>
+            <small className="demo-guide-muted">当前使用：{demoSourceLabel}；未连接后端时仅在当前浏览器内记录。</small>
             {demoNotice ? <small className="demo-guide-notice">{demoNotice}</small> : null}
           </section>
 

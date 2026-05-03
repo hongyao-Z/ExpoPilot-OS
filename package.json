@@ -10,6 +10,8 @@
     "test:copy": "node ./scripts/check-copy.mjs",
     "test:state": "node ./scripts/test-state-machine.mjs",
     "test:contract": "node ./scripts/check-contract.mjs",
+    "test:agent": "node ./server/eval/run-eval.mjs",
+    "server:demo": "node ./server/index.mjs",
     "test:ui": "node --experimental-strip-types ./scripts/test-ui-services.mts",
     "cli": "node ./scripts/expopilot.mjs"
   },

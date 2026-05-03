@@ -57,6 +57,7 @@ import { ENTRY_CAMERA_VISION_CONFIG, getVisionConfigByZoneType, getVisionInputSo
 import { adaptVisionMetricsToBoothHeatup, adaptVisionMetricsToEntranceCongestion, adaptVisionSignalsToEntranceCongestion } from './lib/vision-event-adapter'
 import { loadVisionReplaySignals } from './lib/vision-signal-normalizer'
 import type { VisionEventCandidate, VisionZoneHint } from './lib/vision-types'
+import { createLiveVisionSource, checkLiveVisionHealth, clearLiveTimeline, getLiveTimelineBuffer } from './lib/vision-live-source'
 
 function resolveUiVariant() {
   return new URLSearchParams(window.location.search).get('ui') === 'designcode' ? 'designcode' : 'classic'
@@ -452,6 +453,119 @@ function App() {
     }
   }
 
+  async function connectLiveCamera(request?: CameraReplayRequest) {
+    if (!session || !activeProject) return
+
+    const zoneType = request?.zoneType === 'booth' ? 'booth' : 'entry'
+    const targetZone = projectScope.zones.find((zone) => zone.zone_type === zoneType)
+
+    if (!targetZone) {
+      setFeedback({
+        kind: 'error',
+        message: zoneType === 'booth' ? '当前项目缺少展台区，无法使用实时摄像头。' : '当前项目缺少入口区，无法使用实时摄像头。',
+        scope: 'global',
+      })
+      return
+    }
+
+    const health = await checkLiveVisionHealth()
+    if (!health) {
+      setFeedback({
+        kind: 'error',
+        message: '实时视觉服务未运行。请先启动: python scripts/live-vision-server.py',
+        scope: 'global',
+      })
+      return
+    }
+
+    setLoading(true)
+    clearLiveTimeline()
+    const source = createLiveVisionSource()
+    const statusMsg = zoneType === 'booth' ? '展台 A 实时摄像头' : '入口实时摄像头'
+
+    setFeedback({ kind: 'loading', message: `正在接入${statusMsg}，收集帧数据…`, scope: 'global' })
+
+    const visionConfigForEvent = getVisionConfigByZoneType(zoneType)
+    const existingCameraSignals = snapshot.signals.filter(
+      (signal) => signal.source.startsWith('camera:') && signal.zone_id === targetZone.zone_id,
+    )
+
+    let pollCount = 0
+    const maxPolls = 120
+    const pollInterval = 400
+
+    const poll = (): Promise<VisionEventCandidate | null> =>
+      new Promise((resolve) => {
+        const timer = setInterval(async () => {
+          pollCount++
+          const latest = await source.fetchLatest()
+          if (latest) {
+            const buffer = getLiveTimelineBuffer()
+            if (buffer.length >= 10) {
+              const candidate =
+                zoneType === 'booth'
+                  ? adaptVisionMetricsToBoothHeatup(buffer, activeProject.project_id, targetZone.zone_id, `${zoneType}-live`, visionConfigForEvent.thresholds, existingCameraSignals)
+                  : adaptVisionMetricsToEntranceCongestion(buffer, activeProject.project_id, targetZone.zone_id, `${zoneType}-live`, visionConfigForEvent.thresholds, existingCameraSignals)
+
+              if (candidate) {
+                clearInterval(timer)
+                resolve(candidate)
+                return
+              }
+            }
+          }
+          if (pollCount >= maxPolls) {
+            clearInterval(timer)
+            resolve(null)
+          }
+        }, pollInterval)
+      })
+
+    try {
+      const candidate = await poll()
+
+      if (!candidate) {
+        clearLiveTimeline()
+        setFeedback({
+          kind: 'warning',
+          message: `实时视觉数据收集完成（${getLiveTimelineBuffer().length} 帧），但未达到${zoneType === 'booth' ? 'booth_heatup' : 'entrance_congestion'}阈值。`,
+          scope: 'global',
+        })
+        return
+      }
+
+      if (snapshot.signals.some((item) => item.signal_id === candidate.signal.signal_id)) {
+        setFeedback({ kind: 'warning', message: '该实时事件已注入。', scope: 'global' })
+        return
+      }
+
+      const resolvedEvent = localAgentGateway.resolveEvent(snapshot, candidate.signal)
+      const eventMeta = buildCameraReplayEventMeta(candidate)
+      const nextEvent = {
+        ...resolvedEvent,
+        source: candidate.signal.source,
+        event_type: candidate.signal.signal_type,
+        title: eventMeta.title,
+        summary: candidate.signal.summary,
+        recommended_action: eventMeta.recommendedAction,
+        explanation: `系统根据实时摄像头（${statusMsg}）生成 ${candidate.signal.signal_type} 事件：${candidate.triggerPoints.join('、')}。`,
+        requires_confirmation: true,
+      }
+      const nextSnapshot: ExpoPilotSnapshot = {
+        ...snapshot,
+        signals: [candidate.signal, ...snapshot.signals],
+        events: [nextEvent, ...snapshot.events],
+      }
+
+      commitSnapshot(nextSnapshot, { kind: 'success', message: `实时摄像头事件已注入（${statusMsg}）。`, scope: 'global' })
+    } catch (error) {
+      console.error(error)
+      setFeedback({ kind: 'error', message: '实时摄像头接入失败。', scope: 'global' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   function saveStrategy(eventId: string) {
     if (!session) return
     const result = saveStrategyAction(snapshot, session.displayName, eventId, localAgentGateway)
@@ -532,6 +646,7 @@ function App() {
         onLogout={logout}
         onNavigate={navigate}
         onReset={resetProjectState}
+        onConnectLiveCamera={connectLiveCamera}
         onReplayCameraSignal={replayCameraSignal}
         onRevokeTask={revokeTask}
         onSimulateSignal={simulateSignal}

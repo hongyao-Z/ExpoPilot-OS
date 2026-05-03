@@ -11,3 +11,4 @@ preview*.err.log
 vite-dev*.log
 vite-dev*.err.log
 .codex-long-runner
+server/state/demo-db.json

@@ -1,0 +1,92 @@
+[
+  {
+    "caseId": "case-001",
+    "title": "入口拥堵",
+    "input": { "eventType": "entrance_congestion", "evidence": ["入口 A 密度上升", "排队长度超过阈值"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-002",
+    "title": "展位排队过长",
+    "input": { "eventType": "booth_queue", "evidence": ["展位 512 排队超过通道宽度", "观众停留时间延长"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-003",
+    "title": "设备故障",
+    "input": { "eventType": "equipment_failure", "evidence": ["舞台设备状态异常", "备用设备未确认"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "派发技术支持检查设备",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-004",
+    "title": "人员缺岗",
+    "input": { "eventType": "staff_missing", "evidence": ["入口岗位缺少 1 人", "排队处理速度下降"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "调度备用工作人员补位",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-005",
+    "title": "消防通道遮挡",
+    "input": { "eventType": "fire_lane_blocked", "riskLevel": "high", "evidence": ["消防通道出现堆物", "通道宽度不足"] },
+    "expectedRiskLevel": "high",
+    "expectedAction": "通知安保协同清理通道",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若 5 分钟内未缓解，建议增加安保协同"
+  },
+  {
+    "caseId": "case-006",
+    "title": "误报低风险",
+    "input": { "eventType": "false_positive", "riskLevel": "low", "evidence": ["短时聚集已消散", "摄像头状态正常"] },
+    "expectedRiskLevel": "low",
+    "expectedAction": "保持观察，不创建任务",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-007",
+    "title": "高风险拥堵",
+    "input": { "eventType": "high_risk_congestion", "riskLevel": "high", "evidence": ["入口 A 队列外溢", "备用通道压力上升"] },
+    "expectedRiskLevel": "high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若 5 分钟内未缓解，建议增加安保协同"
+  },
+  {
+    "caseId": "case-008",
+    "title": "工作人员无响应",
+    "input": { "eventType": "worker_no_response", "evidence": ["已派任务 5 分钟无状态变化", "移动端未反馈"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-009",
+    "title": "任务超时",
+    "input": { "eventType": "task_timeout", "evidence": ["任务超过预计到达时间", "入口排队未缓解"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  },
+  {
+    "caseId": "case-010",
+    "title": "备用通道压力上升",
+    "input": { "eventType": "backup_route_pressure", "evidence": ["备用通道排队增加", "入口 A 分流后压力转移"] },
+    "expectedRiskLevel": "medium_high",
+    "expectedAction": "增派入口引导员进行分流",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同"
+  }
+]

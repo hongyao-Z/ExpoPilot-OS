@@ -3,6 +3,7 @@ import { getAgentDecisionProducerLabel, type AgentDecisionProducerKey } from './
 import type { AgentDecision, AgentExplanationSet, AgentLifecycleState, AgentLogItem } from './agent-decision-adapter'
 import type { AgentExplanationSourceKey } from './agent-explanation-config'
 import { resolveAgentExplanations } from './agent-explanation-providers'
+import { buildLlmAgentDecision } from './agent-decision-llm'
 
 export type AgentDecisionBase = Omit<
   AgentDecision,
@@ -26,6 +27,12 @@ export async function resolveAgentDecisionBase(
   preferredExplanationSource: AgentExplanationSourceKey,
 ): Promise<AgentDecisionBase> {
   switch (preferredProducer) {
+    case 'llm':
+      return resolveWithFallback(
+        context,
+        () => buildLlmAgentDecision(context, context.focusEvent),
+        'llm',
+      )
     case 'mock_agent':
       return resolveWithFallback(
         context,

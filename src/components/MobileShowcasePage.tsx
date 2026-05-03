@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   appendDemoHistory,
-  getDemoTaskStatusLabel,
   readDemoState,
-  resetDemoState,
   subscribeDemoState,
-  transitionDemoTaskStatus,
+  type DemoState,
   type DemoTaskStatus,
 } from '../lib/demo-state'
+import { acceptTask, getCurrentTask, getRuntimeSourceLabel, markEnRoute, resetDemo, startTask, submitFeedback, type DemoApiResult } from '../lib/api-client'
 import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep } from '../lib/demo-guide'
 import { getDemoTaskLifecycleById } from '../lib/task-lifecycle'
 import { getLatestFeedbackByTaskId } from '../lib/staff-feedback'
@@ -116,14 +115,6 @@ function isCommandDisabled(target: MobileTaskState, currentState: MobileTaskStat
   return getPrimaryCommandTarget(currentState) !== target
 }
 
-function getTransitionLabel(status: DemoTaskStatus) {
-  if (status === 'accepted') return '工作人员已接收任务'
-  if (status === 'en_route') return '工作人员已到达入口 A 分流点'
-  if (status === 'in_progress') return '工作人员开始现场分流'
-  if (status === 'feedback_submitted') return '工作人员已提交完成反馈'
-  return `任务状态更新为${getDemoTaskStatusLabel(status)}`
-}
-
 function getRecommendedActionLabel(currentState: MobileTaskState) {
   if (currentState === 'pending_approval') return '等待项目经理确认'
   if (currentState === 'dispatched') return '确认接收'
@@ -142,16 +133,31 @@ export function MobileShowcasePage() {
   const [taskState, setTaskState] = useState<MobileTaskState>(() => readDemoState().taskStatus)
   const [feedbackNote, setFeedbackNote] = useState(() => readDemoState().lastFeedbackText)
   const [localNotice, setLocalNotice] = useState('')
+  const [demoSourceLabel, setDemoSourceLabel] = useState(getRuntimeSourceLabel('local'))
 
-  useEffect(
-    () =>
-      subscribeDemoState((nextState) => {
-        setDemoState(nextState)
-        setTaskState(nextState.taskStatus)
-        setFeedbackNote(nextState.lastFeedbackText)
-      }),
-    [],
-  )
+  useEffect(() => {
+    let cancelled = false
+
+    getCurrentTask().then((result) => {
+      if (cancelled) return
+      setDemoState(result.data)
+      setTaskState(result.data.taskStatus)
+      setFeedbackNote(result.data.lastFeedbackText)
+      setDemoSourceLabel(getRuntimeSourceLabel(result.source))
+    })
+
+    const unsubscribe = subscribeDemoState((nextState) => {
+      setDemoState(nextState)
+      setTaskState(nextState.taskStatus)
+      setFeedbackNote(nextState.lastFeedbackText)
+      setDemoSourceLabel(getRuntimeSourceLabel('local'))
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [])
 
   const progressLabel = useMemo(() => {
     if (taskState === 'support') return '已通知项目经理，请等待支援确认'
@@ -162,30 +168,38 @@ export function MobileShowcasePage() {
     return '请按任务步骤处理入口 A 人流拥堵'
   }, [taskState])
 
-  const applyTaskStatus = (target: MobileTaskState, historyLabel?: string) => {
+  const applyTaskStatus = async (target: MobileTaskState, historyLabel?: string) => {
     if (target === 'support' || target === 'exception') {
       const nextState = appendDemoHistory(historyLabel ?? stateLabels[target], '入口引导员 A')
       setDemoState(nextState)
       setTaskState(target)
+      setDemoSourceLabel(getRuntimeSourceLabel('local'))
       setLocalNotice(target === 'support' ? '支援请求已记录在当前浏览器演示状态中。' : '现场异常已记录在当前浏览器演示状态中。')
       return
     }
 
-    const nextState = transitionDemoTaskStatus(target, {
-      label: getTransitionLabel(target),
-      actorLabel: '入口引导员 A',
-      lastFeedbackText: target === 'feedback_submitted' ? feedbackNote : undefined,
-    })
-    setDemoState(nextState)
-    setTaskState(nextState.taskStatus)
+    const handlers: Partial<Record<DemoTaskStatus, () => Promise<DemoApiResult<DemoState>>>> = {
+      accepted: acceptTask,
+      en_route: markEnRoute,
+      in_progress: startTask,
+      feedback_submitted: () => submitFeedback(feedbackNote),
+    }
+
+    const result = await handlers[target]?.()
+    if (!result) return
+
+    setDemoState(result.data)
+    setTaskState(result.data.taskStatus)
+    setDemoSourceLabel(getRuntimeSourceLabel(result.source))
     setLocalNotice('')
   }
 
-  const handleResetDemoState = () => {
-    const nextState = resetDemoState()
-    setDemoState(nextState)
-    setTaskState(nextState.taskStatus)
-    setFeedbackNote(nextState.lastFeedbackText)
+  const handleResetDemoState = async () => {
+    const result = await resetDemo()
+    setDemoState(result.data)
+    setTaskState(result.data.taskStatus)
+    setFeedbackNote(result.data.lastFeedbackText)
+    setDemoSourceLabel(getRuntimeSourceLabel(result.source))
     setLocalNotice('演示状态已重置，等待项目经理确认派发。')
   }
 
@@ -227,7 +241,7 @@ export function MobileShowcasePage() {
               查看复盘
             </button>
           ) : null}
-          <small className="demo-guide-muted">这是当前浏览器内记录的本地演示状态，不代表跨设备实时同步。</small>
+          <small className="demo-guide-muted">当前使用：{demoSourceLabel}；未连接后端时仅在当前浏览器内记录。</small>
         </section>
 
         <section className={`mobile-card mobile-task-hero mobile-task-hero--${stateTone[taskState]}`}>

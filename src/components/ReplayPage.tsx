@@ -22,7 +22,8 @@ import { getStaffById } from '../lib/staff-pool'
 import type { StaffPoolMember, StaffRole } from '../lib/staff-pool'
 import { getVenueZoneById } from '../lib/venue-zones'
 import type { VenueZone } from '../lib/venue-zones'
-import { getDemoTaskStatusLabel, readDemoState, resetDemoState, subscribeDemoState, type DemoState, type DemoTaskStatus } from '../lib/demo-state'
+import { getDemoTaskStatusLabel, readDemoState, subscribeDemoState, type DemoState, type DemoTaskStatus } from '../lib/demo-state'
+import { getReplay, getRuntimeSourceLabel, resetDemo } from '../lib/api-client'
 import { demoGuideTotalSteps, getNextDemoPath, inferDemoGuideStep } from '../lib/demo-guide'
 import type { RouteState } from '../lib/router'
 import { AppFrame } from './AppFrame'
@@ -263,9 +264,28 @@ export function ReplayPage(props: {
   const [replayPlaying, setReplayPlaying] = useState(false)
   const [demoState, setDemoState] = useState(readDemoState)
   const [demoNotice, setDemoNotice] = useState('')
+  const [demoSourceLabel, setDemoSourceLabel] = useState(getRuntimeSourceLabel('local'))
   const [selectedEventId, setSelectedEventId] = useState<string | null>(props.events[0]?.event.event_id ?? null)
 
-  useEffect(() => subscribeDemoState(setDemoState), [])
+  useEffect(() => {
+    let cancelled = false
+
+    getReplay().then((result) => {
+      if (cancelled) return
+      setDemoState(result.data.state)
+      setDemoSourceLabel(getRuntimeSourceLabel(result.source))
+    })
+
+    const unsubscribe = subscribeDemoState((nextState) => {
+      setDemoState(nextState)
+      setDemoSourceLabel(getRuntimeSourceLabel('local'))
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [])
 
   const replayStats = useMemo(() => {
     const sortedEvents = getSortedEvents(props.events)
@@ -489,8 +509,10 @@ export function ReplayPage(props: {
   const replayNextPath = getNextDemoPath('replay', demoState)
   const replayHasFeedback = hasReachedDemoStatus(demoState.taskStatus, 'feedback_submitted')
 
-  const handleResetDemoState = () => {
-    setDemoState(resetDemoState())
+  const handleResetDemoState = async () => {
+    const result = await resetDemo()
+    setDemoState(result.data)
+    setDemoSourceLabel(getRuntimeSourceLabel(result.source))
     setDemoNotice('演示状态已重置，可从 LivePage 重新确认派发。')
   }
 
@@ -564,7 +586,7 @@ export function ReplayPage(props: {
               重置演示状态
             </button>
           </div>
-          <small className="demo-guide-muted">本页用于回看入口 A 拥堵事件的识别、决策、执行和沉淀过程。</small>
+          <small className="demo-guide-muted">当前使用：{demoSourceLabel}；本页用于回看入口 A 拥堵事件的识别、决策、执行和沉淀过程。</small>
           {demoNotice ? <small className="demo-guide-notice">{demoNotice}</small> : null}
         </section>
 
@@ -605,7 +627,7 @@ export function ReplayPage(props: {
         <section className="replay-demo-state-panel" aria-label="演示状态记录">
           <div className="replay-section-head">
             <div>
-              <span>本地演示状态</span>
+              <span>{demoSourceLabel}</span>
               <h3>{demoState.eventName}</h3>
             </div>
             <button className="ghost-button" onClick={handleResetDemoState} type="button">重置演示状态</button>
