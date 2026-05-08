@@ -1,5 +1,12 @@
 import type { AuthGateway, AuthSession, LoginInput, PermissionSnapshot, RoleType } from '../domain/types'
 
+const DEMO_EMAIL_DOMAIN = '@expopilot.cn'
+const DEMO_PASSWORD = 'ExpoPilot2026'
+
+export function isDemoLoginInput(input: LoginInput) {
+  return input.email.trim().toLowerCase().endsWith(DEMO_EMAIL_DOMAIN) && input.password === DEMO_PASSWORD
+}
+
 function permissionForRole(role: RoleType, orgId?: string, staffId?: string): PermissionSnapshot {
   switch (role) {
     case 'staff':
@@ -72,6 +79,10 @@ export const localAuthGateway: AuthGateway = {
     mode: 'sandbox-login',
   },
   signIn(input: LoginInput): AuthSession {
+    if (!isDemoLoginInput(input)) {
+      throw new Error('当前公开演示只开放演示账号登录。')
+    }
+
     return buildSandboxSession(input)
   },
 }

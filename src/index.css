@@ -10226,7 +10226,22 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
 }
 
 .login-field-action {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
   color: rgba(255, 248, 243, 0.52);
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.login-field-action:hover {
+  color: #ff8a2a;
+  background: rgba(255, 138, 42, 0.08);
 }
 
 .login-form-row {
@@ -10259,6 +10274,17 @@ body[data-ui-variant='designcode'] .login-page .login-masthead-3d::after {
   background: transparent;
   font-size: 14px;
   font-weight: 700;
+}
+
+.login-security-message {
+  margin: -2px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 138, 42, 0.22);
+  color: #ffd08a;
+  background: rgba(255, 138, 42, 0.08);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .login-primary-button,

@@ -59,6 +59,8 @@ export function LoginPage(props: {
 }) {
   const [selectedRole, setSelectedRole] = useState<RoleType>('organizer')
   const [showSandboxRoles, setShowSandboxRoles] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [loginMessage, setLoginMessage] = useState('')
   const [mapFocus, setMapFocus] = useState({ x: 62, y: 42 })
 
   const primaryRoleProfiles = props.roleProfiles.filter((profile) => profile.role === 'organizer' || profile.role === 'staff')
@@ -189,7 +191,22 @@ export function LoginPage(props: {
               className="login-form"
               onSubmit={(event) => {
                 event.preventDefault()
-                props.onLogin(new FormData(event.currentTarget), selectedRole)
+                const formData = new FormData(event.currentTarget)
+                const email = String(formData.get('email') || '').trim().toLowerCase()
+                const password = String(formData.get('password') || '')
+
+                if (!email || !password) {
+                  setLoginMessage('请输入演示账号和密码，或使用沙盒环境快速登录。')
+                  return
+                }
+
+                if (!email.endsWith('@expopilot.cn') || password !== 'ExpoPilot2026') {
+                  setLoginMessage('当前公开演示只开放 @expopilot.cn 演示账号。')
+                  return
+                }
+
+                setLoginMessage('')
+                props.onLogin(formData, selectedRole)
               }}
             >
               <label className="login-field">
@@ -199,7 +216,7 @@ export function LoginPage(props: {
                     <path d="m4 8 8 6 8-6" />
                   </svg>
                 </span>
-                <input name="email" placeholder="邮箱地址" defaultValue="pilot@expopilot.cn" />
+                <input autoComplete="email" name="email" placeholder="邮箱地址" defaultValue="pilot@expopilot.cn" />
               </label>
 
               <label className="login-field">
@@ -209,24 +226,35 @@ export function LoginPage(props: {
                     <path d="M8 10V8a4 4 0 0 1 8 0v2" />
                   </svg>
                 </span>
-                <input name="password" placeholder="密码" type="password" defaultValue="ExpoPilot2026" />
-                <span className="login-field-action" aria-hidden="true">
+                <input autoComplete="current-password" name="password" placeholder="演示密码" type={showPassword ? 'text' : 'password'} />
+                <button
+                  aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                  className="login-field-action"
+                  onClick={() => setShowPassword((value) => !value)}
+                  type="button"
+                >
                   <svg viewBox="0 0 24 24" role="img">
                     <path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z" />
                     <circle cx="12" cy="12" r="2.5" />
                   </svg>
-                </span>
+                </button>
               </label>
 
               <div className="login-form-row">
                 <label className="login-remember">
-                  <input type="checkbox" name="remember" defaultChecked />
+                  <input type="checkbox" name="remember" />
                   <span>记住我</span>
                 </label>
-                <button className="login-link-button" type="button">
+                <button className="login-link-button" onClick={() => setLoginMessage('演示环境未接入找回密码，请使用沙盒环境快速登录。')} type="button">
                   忘记密码
                 </button>
               </div>
+
+              {loginMessage ? (
+                <p className="login-security-message" role="status">
+                  {loginMessage}
+                </p>
+              ) : null}
 
               <button className="login-primary-button" type="submit">
                 登录系统
@@ -288,7 +316,7 @@ export function LoginPage(props: {
               </section>
             ) : null}
 
-            <p className="login-card-note">仅用于演示与体验，不保存任何真实数据</p>
+            <p className="login-card-note">公开演示环境仅使用本地会话，不接收真实账号或生产数据。</p>
           </section>
         </aside>
       </section>
