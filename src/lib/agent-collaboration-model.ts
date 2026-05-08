@@ -156,4 +156,3 @@ export function getCollaborationRecordsByEventId(eventId: string, records = list
 export function getLatestCollaborationStage(records: readonly AgentCollaborationRecord[]) {
   return records.at(-1)?.stage ?? null
 }
-

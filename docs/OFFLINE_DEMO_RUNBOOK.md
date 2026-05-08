@@ -70,4 +70,3 @@ powershell -ExecutionPolicy Bypass -File D:\openclaw-explanation-adapter\healthc
 | 网络 | 优先连接展位稳定 Wi-Fi 或手机热点 |
 | 备用二维码 | 准备国内域名、GitHub Pages、局域网 IP 三个版本 |
 | 截图 | 准备关键页面截图，防止网络临时不可用 |
-

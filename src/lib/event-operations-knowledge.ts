@@ -266,4 +266,3 @@ export function inferMissingEvidence(knowledge: EventOperationsKnowledge, eviden
   if (evidenceCount >= knowledge.evidenceRequirements.length) return []
   return knowledge.evidenceRequirements.slice(evidenceCount)
 }
-

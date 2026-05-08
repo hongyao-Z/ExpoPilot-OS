@@ -63,4 +63,3 @@ https://expopilot.cn/#/mobile?v=demo-202605
 | 正式域名 | `https://expopilot.cn/#/mobile` |
 | GitHub Pages | `https://hongyao-z.github.io/ExpoPilot-OS/#/mobile` |
 | 局域网 | `http://<电脑IP>:5173/#/mobile` |
-

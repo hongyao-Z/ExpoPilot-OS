@@ -58,4 +58,3 @@ http://<电脑局域网IP>:5173/#/mobile
 ```text
 https://expopilot.cn/#/mobile?v=demo-202605
 ```
-
