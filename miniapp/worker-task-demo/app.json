@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/task/task"
+  ],
+  "window": {
+    "navigationBarTitleText": "场脉任务端",
+    "navigationBarBackgroundColor": "#080807",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#050505",
+    "backgroundTextStyle": "dark"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

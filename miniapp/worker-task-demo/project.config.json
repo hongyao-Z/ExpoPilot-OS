@@ -1,0 +1,13 @@
+{
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "3.8.0",
+  "miniprogramRoot": "./",
+  "projectname": "ExpoPilot-Worker-Task-Demo",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "urlCheck": false
+  }
+}

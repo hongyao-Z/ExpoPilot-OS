@@ -1,0 +1,97 @@
+<view class="worker-page">
+  <view class="topbar">
+    <view>
+      <text class="eyebrow">场脉任务端</text>
+      <text class="operator">{{task.role}}</text>
+    </view>
+    <text class="online">在线</text>
+  </view>
+
+  <view class="task-card">
+    <view class="status-row">
+      <text>当前状态</text>
+      <text class="status-pill">{{statusLabel}}</text>
+    </view>
+    <text class="task-title">{{task.title}}</text>
+    <text class="task-desc">按项目经理确认后的任务指令执行。DispatchAgent 只提供建议，不自动派发。</text>
+    <view class="meta-grid">
+      <view>
+        <text>位置</text>
+        <text>{{task.location}}</text>
+      </view>
+      <view>
+        <text>要求到达</text>
+        <text>{{task.arriveWithin}}</text>
+      </view>
+      <view>
+        <text>优先级</text>
+        <text>{{task.priority}}</text>
+      </view>
+      <view>
+        <text>联系人</text>
+        <text>{{task.contact}}</text>
+      </view>
+    </view>
+    <view class="source-box">
+      <text>派发来源</text>
+      <text>{{task.source}}</text>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-head">
+      <text>处理动作</text>
+      <text>按顺序执行</text>
+    </view>
+    <view class="instruction" wx:for="{{instructions}}" wx:key="*this">
+      <text class="index">{{index + 1}}</text>
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-head">
+      <text>现场操作</text>
+      <text>大按钮适合手机点击</text>
+    </view>
+    <view class="button-grid">
+      <button
+        wx:for="{{buttons}}"
+        wx:key="action"
+        data-action="{{item.action}}"
+        class="command-button {{item.primary ? 'primary' : ''}} {{item.secondary ? 'secondary' : ''}} {{item.danger ? 'danger' : ''}}"
+        bindtap="handleCommand"
+      >
+        {{item.label}}
+      </button>
+    </view>
+    <text wx:if="{{alertText}}" class="alert">{{alertText}}</text>
+  </view>
+
+  <view class="panel">
+    <view class="section-head">
+      <text>完成反馈</text>
+      <text>给项目经理看的结果</text>
+    </view>
+    <view class="result-list">
+      <text wx:for="{{resultOptions}}" wx:key="*this">{{item}}</text>
+    </view>
+    <textarea class="note" value="{{feedbackNote}}" bindinput="handleNoteInput" maxlength="120" />
+  </view>
+
+  <view class="panel">
+    <view class="section-head">
+      <text>任务时间线</text>
+      <text>{{statusLabel}}</text>
+    </view>
+    <view class="timeline-item {{item.state}}" wx:for="{{timeline}}" wx:key="id">
+      <text class="dot"></text>
+      <view>
+        <text>{{item.label}}</text>
+        <text>{{item.stateLabel}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="reset-button" bindtap="resetDemo">重置演示状态</button>
+</view>
