@@ -1,6 +1,6 @@
+import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { spawnSync } from 'node:child_process'
 
 const rootDir = resolve(import.meta.dirname, '..')
 const distDir = join(rootDir, 'dist')
@@ -32,11 +32,7 @@ const demoLinks = {
   },
 }
 
-writeFileSync(
-  join(distDir, 'DEMO_LINKS.json'),
-  `${JSON.stringify(demoLinks, null, 2)}\n`,
-  'utf8',
-)
+writeFileSync(join(distDir, 'DEMO_LINKS.json'), `${JSON.stringify(demoLinks, null, 2)}\n`, 'utf8')
 
 writeFileSync(
   join(distDir, 'qr-targets.txt'),
@@ -49,6 +45,7 @@ writeFileSync(
     `备用登录页：${demoLinks.githubPages.login}`,
     '',
     '海报主二维码建议使用正式移动端地址。',
+    '如果正式域名未完成备案或解析，可临时使用 GitHub Pages 备用地址。',
   ].join('\n'),
   'utf8',
 )
@@ -58,7 +55,7 @@ writeFileSync(
   [
     '# ExpoPilot OS 静态部署说明',
     '',
-    '上传本目录内容到国内静态网站托管平台。',
+    '上传本目录内容到国内静态网站托管平台、对象存储静态站点，或 Nginx Web 根目录。',
     '',
     '## 验收地址',
     '',
@@ -69,10 +66,17 @@ writeFileSync(
     '',
     '## 说明',
     '',
-    '- 本项目使用 Hash 路由，一般不需要额外 rewrite。',
+    '- 项目使用 Hash 路由，通常不需要额外 rewrite。',
     '- 如果使用 Nginx，建议保留 `try_files $uri $uri/ /index.html;`。',
     '- 演示账号：pilot@expopilot.cn / ExpoPilot2026。',
     '- 沙盒快速登录可用于无账号演示。',
+    '- EventReviewAgent 和 DispatchAgent 默认使用本地规则模型，不依赖真实 LLM。',
+    '- OpenClaw 仍只作为 explanation source，不是执行器。',
+    '',
+    '## 二维码建议',
+    '',
+    `- 海报二维码：${demoLinks.production.mobile}`,
+    `- 备用二维码：${demoLinks.githubPages.mobile}`,
   ].join('\n'),
   'utf8',
 )
