@@ -5,18 +5,31 @@ import {
 } from './operations-knowledge.mjs'
 import { guardEventReviewOutput } from '../schemas/guards.mjs'
 
+const highRiskEvents = new Set(['high_risk_congestion', 'fire_lane_blocked', 'medical_incident', 'lost_child'])
+
 function resolveRiskLevel(input, evidenceQuality) {
   if (input?.riskLevel) return input.riskLevel
   if (input?.eventType === 'false_positive') return 'low'
-  if (input?.eventType === 'high_risk_congestion') return 'high'
-  if (input?.eventType === 'fire_lane_blocked') return 'high'
+  if (highRiskEvents.has(input?.eventType)) return 'high'
   if (evidenceQuality === 'weak') return 'manual_review'
   return 'medium_high'
 }
 
 function resolveEvidence(input, knowledge) {
-  if (input.evidence?.length) return input.evidence
+  if (Array.isArray(input.evidence)) return input.evidence
   return knowledge.evidenceRequirements.slice(0, 3)
+}
+
+function buildDecision(input, knowledge) {
+  if (input.eventType === 'false_positive') {
+    return 'Current signal is more likely a temporary fluctuation or false positive; observe only and do not create a task.'
+  }
+
+  if (input.title) {
+    return `${input.title} requires field handling review.`
+  }
+
+  return `${knowledge.professionalLabel} requires manager review.`
 }
 
 export function reviewEvent(input = {}) {
@@ -28,26 +41,24 @@ export function reviewEvent(input = {}) {
 
   const output = {
     agent: 'EventReviewAgent',
-    decision:
-      input.eventType === 'false_positive'
-        ? '当前更像短时聚集或误报，建议观察，不创建任务'
-        : input.title
-          ? `${input.title} 存在现场处置风险`
-          : `${knowledge.professionalLabel} 需要项目经理复核`,
+    decision: buildDecision(input, knowledge),
     riskLevel,
     evidence,
     evidenceQuality,
     missingEvidence,
     professionalRiskNote:
       evidenceQuality === 'weak'
-        ? `${knowledge.professionalLabel} 证据不足，应先人工复核。`
-        : `${knowledge.professionalLabel} 判断依据：${knowledge.riskSignals.slice(0, 2).join('、')}。`,
+        ? `${knowledge.professionalLabel}: evidence is weak; manager should review before any task is created.`
+        : `${knowledge.professionalLabel}: key signals include ${knowledge.riskSignals.slice(0, 2).join('; ')}.`,
     managerReviewChecklist: knowledge.managerChecklist,
     uncertainty:
       missingEvidence.length > 0
-        ? `仍缺少：${missingEvidence.join('、')}。`
-        : '当前为 demo 数据，未接入生产级多路摄像头与真实后端。',
+        ? `missing evidence: ${missingEvidence.join('; ')}`
+        : 'demo data only; production multi-camera and backend verification are not connected',
     requiresManagerConfirmation: true,
+    autoDispatch: false,
+    executeDirectly: false,
+    skipManagerConfirmation: false,
   }
 
   return guardEventReviewOutput(output)

@@ -47,6 +47,10 @@ function evaluateCase(testCase) {
     failures.push(`recommendedAction expected ${testCase.expectedAction}, got ${dispatch.value.recommendedAction}`)
   }
 
+  if (testCase.expectedAssignee && dispatch.value.recommendedAssignee !== testCase.expectedAssignee) {
+    failures.push(`recommendedAssignee expected ${testCase.expectedAssignee}, got ${dispatch.value.recommendedAssignee}`)
+  }
+
   if (!dispatch.value.candidateScore || typeof dispatch.value.candidateScore.total !== 'number') {
     failures.push('DispatchAgent did not output candidateScore')
   }
@@ -67,6 +71,10 @@ function evaluateCase(testCase) {
     failures.push('case expected doNotDispatchReason')
   }
 
+  if (testCase.expectedMissingEvidence && review.value.missingEvidence.length === 0) {
+    failures.push('case expected missing evidence')
+  }
+
   if (review.value.riskLevel === 'high' && !dispatch.value.fallback) {
     failures.push('high risk case has no fallback')
   }
@@ -77,6 +85,7 @@ function evaluateCase(testCase) {
 
   return {
     caseId: testCase.caseId,
+    category: testCase.category ?? 'uncategorized',
     title: testCase.title,
     passed: failures.length === 0,
     failures,
@@ -85,12 +94,22 @@ function evaluateCase(testCase) {
 
 const results = cases.map(evaluateCase)
 const failed = results.filter((result) => !result.passed)
+const categorySummary = results.reduce((summary, result) => {
+  const current = summary[result.category] ?? { passed: 0, total: 0 }
+  return {
+    ...summary,
+    [result.category]: {
+      passed: current.passed + (result.passed ? 1 : 0),
+      total: current.total + 1,
+    },
+  }
+}, {})
 
 if (failed.length > 0) {
   console.error('eval-failed')
-  console.error(JSON.stringify({ passed: results.length - failed.length, total: results.length, failed }, null, 2))
+  console.error(JSON.stringify({ passed: results.length - failed.length, total: results.length, categories: categorySummary, failed }, null, 2))
   process.exit(1)
 }
 
 console.log('eval-ok')
-console.log(JSON.stringify({ passed: results.length, total: results.length }, null, 2))
+console.log(JSON.stringify({ passed: results.length, total: results.length, categories: categorySummary }, null, 2))

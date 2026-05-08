@@ -1,108 +1,241 @@
 [
   {
     "caseId": "case-001",
-    "title": "入口拥堵证据充分",
+    "category": "positive",
+    "title": "Entrance A congestion with sufficient evidence",
     "input": {
       "eventType": "entrance_congestion",
-      "evidence": ["入口 A 人流密度持续上升", "排队长度超过预设阈值", "入口通行速度下降"]
+      "evidence": ["Entrance A density rising", "queue length above threshold", "entry throughput dropping"]
     },
     "expectedRiskLevel": "medium_high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "增派入口引导员进行分流",
+    "expectedAction": "add entrance guide for crowd diversion",
+    "expectedAssignee": "Entrance guide",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同。"
+    "expectedFallback": "if field pressure continues rising, manager may add security support"
   },
   {
     "caseId": "case-002",
-    "title": "入口拥堵证据不足",
+    "category": "boundary",
+    "title": "Entrance congestion with insufficient evidence",
     "input": {
       "eventType": "entrance_congestion",
-      "evidence": ["入口 A 短时聚集"]
+      "evidence": ["Entrance A short-term gathering"]
     },
     "expectedRiskLevel": "manual_review",
     "expectedEvidenceQuality": "weak",
-    "expectedAction": "增派入口引导员进行分流",
+    "expectedAction": "add entrance guide for crowd diversion",
+    "expectedAssignee": "Manager manual review",
     "expectedRequiresManagerConfirmation": true,
-    "expectedDoNotDispatch": true
+    "expectedDoNotDispatch": true,
+    "expectedMissingEvidence": true
   },
   {
     "caseId": "case-003",
-    "title": "消防通道占用",
+    "category": "positive",
+    "title": "High risk entrance congestion",
     "input": {
-      "eventType": "fire_lane_blocked",
-      "riskLevel": "high",
-      "evidence": ["消防通道出现堆物", "通道宽度不足", "安保巡检确认影响疏散"]
+      "eventType": "high_risk_congestion",
+      "evidence": ["queue spills into main aisle", "backup route pressure rising", "entry throughput dropping"]
     },
     "expectedRiskLevel": "high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "通知安保协同清理通道",
+    "expectedAction": "add entrance guide for crowd diversion",
+    "expectedAssignee": "Entrance guide",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若 5 分钟内未缓解，建议增加安保协同。"
+    "expectedFallback": "if unresolved within 5 minutes, escalate to security and manager review"
   },
   {
     "caseId": "case-004",
-    "title": "误报低风险",
+    "category": "safety",
+    "title": "Fire lane blocked",
     "input": {
-      "eventType": "false_positive",
-      "riskLevel": "low",
-      "evidence": ["短时聚集已消散", "摄像头状态正常", "现场工作人员未反馈压力"]
+      "eventType": "fire_lane_blocked",
+      "evidence": ["objects in fire lane", "lane width insufficient", "security confirms evacuation impact"]
     },
-    "expectedRiskLevel": "low",
+    "expectedRiskLevel": "high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "保持观察，不创建任务",
+    "expectedAction": "ask security to clear the fire lane",
+    "expectedAssignee": "Security support",
     "expectedRequiresManagerConfirmation": true,
-    "expectedDoNotDispatch": true
+    "expectedFallback": "if unresolved within 5 minutes, escalate to security and manager review"
   },
   {
     "caseId": "case-005",
-    "title": "工作人员无响应",
+    "category": "negative",
+    "title": "False positive should not create task",
     "input": {
-      "eventType": "worker_no_response",
-      "evidence": ["已派任务 5 分钟无状态变化", "移动端未反馈", "入口压力仍在上升"]
+      "eventType": "false_positive",
+      "riskLevel": "low",
+      "evidence": ["temporary gathering cleared", "camera normal", "field staff reports no pressure"]
     },
-    "expectedRiskLevel": "medium_high",
+    "expectedRiskLevel": "low",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "升级主管并重新确认执行人",
+    "expectedAction": "observe only, do not create task",
+    "expectedAssignee": "Manager manual review",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若原执行人仍无响应，项目经理应人工重派。"
+    "expectedDoNotDispatch": true,
+    "expectedFallback": "continue observation and do not create a task"
   },
   {
     "caseId": "case-006",
-    "title": "备用通道压力上升",
+    "category": "boundary",
+    "title": "Worker no response",
     "input": {
-      "eventType": "backup_route_pressure",
-      "evidence": ["备用通道排队增加", "入口 A 分流后压力转移", "现场反馈备用通道接近承载上限"]
+      "eventType": "worker_no_response",
+      "evidence": ["task has no update for 5 minutes", "mobile endpoint no feedback", "Entrance A pressure still rising"]
     },
     "expectedRiskLevel": "medium_high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "调整分流节奏并打开缓冲区",
+    "expectedAction": "escalate supervisor and reconfirm assignee",
+    "expectedAssignee": "Site supervisor",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若备用通道继续承压，停止继续导流并重新评估入口动线。"
+    "expectedFallback": "if the original assignee still has no response, manager should reassign manually"
   },
   {
     "caseId": "case-007",
-    "title": "设备异常",
+    "category": "boundary",
+    "title": "Task timeout",
     "input": {
-      "eventType": "equipment_failure",
-      "evidence": ["舞台设备状态异常", "备用设备未确认", "下一场活动即将开始"]
+      "eventType": "task_timeout",
+      "evidence": ["task exceeded expected arrival time", "latest status has not changed", "field risk remains"]
     },
     "expectedRiskLevel": "medium_high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "派发技术支持检查设备",
+    "expectedAction": "escalate supervisor and reconfirm assignee",
+    "expectedAssignee": "Site supervisor",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同。"
+    "expectedFallback": "if the original assignee still has no response, manager should reassign manually"
   },
   {
     "caseId": "case-008",
-    "title": "人员不足",
+    "category": "positive",
+    "title": "Backup route pressure rising after diversion",
     "input": {
-      "eventType": "staff_missing",
-      "evidence": ["入口岗位缺少 1 人", "排队处理速度下降", "当前任务量超过在岗人员能力"]
+      "eventType": "backup_route_pressure",
+      "evidence": ["backup route queue increasing", "Entrance A diversion active", "route throughput dropping"]
     },
     "expectedRiskLevel": "medium_high",
     "expectedEvidenceQuality": "sufficient",
-    "expectedAction": "调度备用工作人员补位",
+    "expectedAction": "adjust diversion pace and open buffer area",
+    "expectedAssignee": "Floor coordinator",
     "expectedRequiresManagerConfirmation": true,
-    "expectedFallback": "若现场压力继续上升，项目经理可追加安保协同。"
+    "expectedFallback": "if backup route pressure continues, stop further diversion and reassess entrance routing"
+  },
+  {
+    "caseId": "case-009",
+    "category": "positive",
+    "title": "Equipment failure",
+    "input": {
+      "eventType": "equipment_failure",
+      "evidence": ["stage equipment abnormal", "backup equipment not confirmed", "next session starts soon"]
+    },
+    "expectedRiskLevel": "medium_high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "dispatch technical support to inspect equipment",
+    "expectedAssignee": "Technical support",
+    "expectedRequiresManagerConfirmation": true
+  },
+  {
+    "caseId": "case-010",
+    "category": "positive",
+    "title": "Staff shortage at entrance",
+    "input": {
+      "eventType": "staff_missing",
+      "evidence": ["one entrance post missing", "queue handling speed dropping", "current task load exceeds staff capacity"]
+    },
+    "expectedRiskLevel": "medium_high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "assign backup staff to cover the post",
+    "expectedAssignee": "Site supervisor",
+    "expectedRequiresManagerConfirmation": true
+  },
+  {
+    "caseId": "case-011",
+    "category": "positive",
+    "title": "Booth queue growth",
+    "input": {
+      "eventType": "booth_queue",
+      "evidence": ["Booth 512 queue increasing", "aisle occupation visible", "booth reception capacity limited"]
+    },
+    "expectedRiskLevel": "medium_high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "add booth reception and organize queue",
+    "expectedAssignee": "Booth reception",
+    "expectedRequiresManagerConfirmation": true
+  },
+  {
+    "caseId": "case-012",
+    "category": "positive",
+    "title": "VIP reception pressure",
+    "input": {
+      "eventType": "vip_attention",
+      "evidence": ["VIP arrival in 3 minutes", "reception area crowded", "security route not confirmed"]
+    },
+    "expectedRiskLevel": "medium_high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "notify manager to coordinate VIP reception and security route",
+    "expectedAssignee": "Site supervisor",
+    "expectedRequiresManagerConfirmation": true
+  },
+  {
+    "caseId": "case-013",
+    "category": "positive",
+    "title": "Weather disruption affects entrance queue",
+    "input": {
+      "eventType": "weather_disruption",
+      "evidence": ["sudden rain", "outdoor queue exposed", "indoor buffer available"]
+    },
+    "expectedRiskLevel": "medium_high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "open indoor buffer and adjust entrance queue route",
+    "expectedAssignee": "Floor coordinator",
+    "expectedRequiresManagerConfirmation": true
+  },
+  {
+    "caseId": "case-014",
+    "category": "safety",
+    "title": "Medical incident",
+    "input": {
+      "eventType": "medical_incident",
+      "evidence": ["visitor discomfort reported", "field staff confirms location", "route needs clearing"]
+    },
+    "expectedRiskLevel": "high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "notify manager and coordinate security to clear route for medical support",
+    "expectedAssignee": "Security support",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "if unresolved within 5 minutes, escalate to security and manager review"
+  },
+  {
+    "caseId": "case-015",
+    "category": "safety",
+    "title": "Lost child assistance",
+    "input": {
+      "eventType": "lost_child",
+      "evidence": ["lost location reported", "guardian feedback received", "service desk record created"]
+    },
+    "expectedRiskLevel": "high",
+    "expectedEvidenceQuality": "sufficient",
+    "expectedAction": "notify service desk and security to coordinate search",
+    "expectedAssignee": "Service desk",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedFallback": "if unresolved within 5 minutes, escalate to security and manager review"
+  },
+  {
+    "caseId": "case-016",
+    "category": "negative",
+    "title": "Unknown signal should stay in manual review",
+    "input": {
+      "eventType": "unknown_signal",
+      "evidence": []
+    },
+    "expectedRiskLevel": "manual_review",
+    "expectedEvidenceQuality": "weak",
+    "expectedAction": "route to manager manual scheduling",
+    "expectedAssignee": "Manager manual review",
+    "expectedRequiresManagerConfirmation": true,
+    "expectedDoNotDispatch": true,
+    "expectedMissingEvidence": true
   }
 ]
