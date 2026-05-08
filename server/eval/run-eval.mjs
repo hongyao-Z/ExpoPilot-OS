@@ -13,7 +13,10 @@ function hasAutoDispatch(output) {
 
 function evaluateCase(testCase) {
   const review = reviewEvent({ ...testCase.input, title: testCase.title })
-  const dispatch = recommendDispatch(testCase.input)
+  const dispatch = recommendDispatch({
+    ...testCase.input,
+    evidenceQuality: review.value.evidenceQuality,
+  })
   const failures = []
 
   if (review.value.requiresManagerConfirmation !== true) {
@@ -24,28 +27,48 @@ function evaluateCase(testCase) {
     failures.push('DispatchAgent manager confirmation requirement mismatch')
   }
 
+  if (dispatch.value.createsTask !== false || dispatch.value.executionMode !== 'recommendation_only') {
+    failures.push('DispatchAgent should stay recommendation_only and should not create tasks')
+  }
+
   if (review.value.riskLevel !== testCase.expectedRiskLevel) {
     failures.push(`riskLevel expected ${testCase.expectedRiskLevel}, got ${review.value.riskLevel}`)
+  }
+
+  if (testCase.expectedEvidenceQuality && review.value.evidenceQuality !== testCase.expectedEvidenceQuality) {
+    failures.push(`evidenceQuality expected ${testCase.expectedEvidenceQuality}, got ${review.value.evidenceQuality}`)
+  }
+
+  if (!Array.isArray(review.value.managerReviewChecklist) || review.value.managerReviewChecklist.length === 0) {
+    failures.push('EventReviewAgent did not output managerReviewChecklist')
   }
 
   if (dispatch.value.recommendedAction !== testCase.expectedAction) {
     failures.push(`recommendedAction expected ${testCase.expectedAction}, got ${dispatch.value.recommendedAction}`)
   }
 
-  if (!dispatch.value.recommendedAction) {
-    failures.push('DispatchAgent did not output recommendedAction')
+  if (!dispatch.value.candidateScore || typeof dispatch.value.candidateScore.total !== 'number') {
+    failures.push('DispatchAgent did not output candidateScore')
+  }
+
+  if (!Array.isArray(dispatch.value.dispatchChecklist) || dispatch.value.dispatchChecklist.length === 0) {
+    failures.push('DispatchAgent did not output dispatchChecklist')
   }
 
   if (testCase.expectedFallback && dispatch.value.fallback !== testCase.expectedFallback) {
     failures.push(`fallback expected ${testCase.expectedFallback}, got ${dispatch.value.fallback}`)
   }
 
-  if (review.value.riskLevel === 'high' && !dispatch.value.fallback) {
-    failures.push('high risk case has no fallback')
+  if (!dispatch.value.fallbackAction) {
+    failures.push('DispatchAgent did not output fallbackAction')
   }
 
-  if (testCase.input.eventType === 'false_positive' && dispatch.value.recommendedAction !== '保持观察，不创建任务') {
-    failures.push('false positive case should not create a direct dispatch recommendation')
+  if (testCase.expectedDoNotDispatch && !dispatch.value.doNotDispatchReason) {
+    failures.push('case expected doNotDispatchReason')
+  }
+
+  if (review.value.riskLevel === 'high' && !dispatch.value.fallback) {
+    failures.push('high risk case has no fallback')
   }
 
   if (hasAutoDispatch(review.value) || hasAutoDispatch(dispatch.value)) {

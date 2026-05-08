@@ -105,3 +105,21 @@ npm run dev
 | 明确说明 OpenClaw 只提供解释来源 | 必须满足 |
 | 不改 OpenClaw / Agent 主链 / Vision / services / selectors / audit store | 必须满足 |
 | `npm run build` 通过 | 必须满足 |
+
+## Agent 专业知识与协作架构话术
+
+> 场脉这版不是把 Agent 做成自动派单器，而是把 Agent 放在可审计的专业分工里。EventReviewAgent 先判断发生了什么、证据是否足够、风险等级和缺失信息；DispatchAgent 再基于岗位、技能、区域、负载和备选人给出派发建议。最后必须由项目经理确认，确认后才进入任务状态。
+
+| 角色 | 讲法 |
+|---|---|
+| MonitoringSignal | 提供监控源、区域和证据，不做决策 |
+| EventReviewAgent | 审核异常、证据质量、风险等级和经理确认清单 |
+| DispatchAgent | 推荐动作、主执行人、备选执行人、候选评分和兜底动作 |
+| RiskGuard | 保证 Agent 不会自动执行、不会跳过确认 |
+| 项目经理 | 保留最终确认权 |
+| StaffFeedback | 工作人员接收、到场、处理、反馈 |
+| ReplayReporter | 汇总证据、责任和处理结果 |
+
+强调边界：
+
+> OpenClaw 仍然只是 explanation source；LLM/RAG 默认关闭；所有关键处置都能在本地规则模型下离线演示。

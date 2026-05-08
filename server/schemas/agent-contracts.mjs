@@ -5,6 +5,10 @@ export const eventReviewRequiredFields = [
   'decision',
   'riskLevel',
   'evidence',
+  'evidenceQuality',
+  'missingEvidence',
+  'professionalRiskNote',
+  'managerReviewChecklist',
   'uncertainty',
   'requiresManagerConfirmation',
 ]
@@ -15,8 +19,11 @@ export const dispatchRequiredFields = [
   'recommendedAssignee',
   'backupAssignee',
   'reason',
+  'candidateScore',
+  'dispatchChecklist',
   'riskNote',
   'fallback',
+  'fallbackAction',
   'requiresManagerConfirmation',
 ]
 

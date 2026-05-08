@@ -94,3 +94,19 @@ flowchart LR
 | OpenClaw 被明确说明为 explanation source only | 必须满足 |
 | EventReviewAgent / DispatchAgent 被明确说明为本地 demo 模型 | 必须满足 |
 | 不改业务主链、不接真实后端、不接真实摄像头 | 必须满足 |
+
+## Agent 专业知识讲解补充
+
+主案例仍然是“入口 A 人流拥堵异常处置”。
+
+| 页面 | 讲解重点 |
+|---|---|
+| LivePage | EventReviewAgent 展示专业判断依据、缺失证据和项目经理确认清单；DispatchAgent 展示候选人评分、备选方案和禁止自动派发提示 |
+| Mobile H5 | 工作人员只看到任务、地点、时限、操作按钮和反馈，不展示复杂 Agent 内部细节 |
+| ReplayPage | 展示监控信号、事件审核、派发建议、项目经理确认、工作人员反馈、复盘报告的 Agent 协作记录 |
+
+对外话术：
+
+> 这里的 Agent 不是自动派单机器人。EventReviewAgent 负责解释异常和证据，DispatchAgent 负责给出动作和人员建议，项目经理保留确认权。确认后才进入任务状态展示，工作人员反馈后进入复盘记录。
+
+真实摄像头当前可用于本机演示接入，但还不是生产级多路监控接入；现场路演仍以本地稳定 demo 数据为主。

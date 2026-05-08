@@ -31,9 +31,13 @@ export function guardEventReviewOutput(output) {
       value: {
         agent: 'EventReviewAgent',
         decision: '需要人工复核入口 A 风险',
-        riskLevel: 'medium_high',
+        riskLevel: 'manual_review',
         evidence: ['Agent 输出不完整，已降级为人工复核'],
-        uncertainty: '当前为 demo 数据，未接入真实摄像头',
+        evidenceQuality: 'weak',
+        missingEvidence: ['完整证据列表', '现场复核结果'],
+        professionalRiskNote: '证据不足时不得创建任务。',
+        managerReviewChecklist: ['确认现场是否真实异常', '确认是否需要创建任务'],
+        uncertainty: '当前为 demo 数据，未接入生产级多路摄像头。',
         requiresManagerConfirmation: true,
       },
     }
@@ -59,12 +63,26 @@ export function guardDispatchOutput(output) {
       value: {
         agent: 'DispatchAgent',
         recommendedAction: '进入人工调度复核',
-        recommendedAssignee: '入口引导员',
+        recommendedAssignee: '项目经理人工复核',
         backupAssignee: '安保协同',
         reason: ['Agent 输出不完整，已降级为人工确认'],
+        candidateScore: {
+          roleMatch: 0,
+          skillMatch: 0,
+          zoneMatch: 0,
+          loadFit: 0,
+          backupReadiness: 0,
+          supervisorEscalationFit: 0,
+          total: 0,
+        },
+        dispatchChecklist: ['项目经理确认后才允许创建任务'],
         riskNote: '禁止绕过项目经理确认。',
         fallback: '由项目经理人工选择执行人员。',
+        fallbackAction: '由项目经理人工选择执行人员。',
+        doNotDispatchReason: 'Agent 输出不完整，不允许自动派发。',
         requiresManagerConfirmation: true,
+        createsTask: false,
+        executionMode: 'recommendation_only',
       },
     }
   }
@@ -75,6 +93,8 @@ export function guardDispatchOutput(output) {
     value: sanitizeForbiddenActions({
       ...output,
       requiresManagerConfirmation: true,
+      createsTask: false,
+      executionMode: 'recommendation_only',
     }),
   }
 }

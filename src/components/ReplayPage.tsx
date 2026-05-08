@@ -18,6 +18,7 @@ import {
   type DispatchAgentRecommendation,
   type ManagerConfirmationStatus,
 } from '../lib/dispatch-agent'
+import { listDemoCollaborationRecords } from '../lib/agent-collaboration-model'
 import { getStaffById } from '../lib/staff-pool'
 import type { StaffPoolMember, StaffRole } from '../lib/staff-pool'
 import { getVenueZoneById } from '../lib/venue-zones'
@@ -495,6 +496,13 @@ export function ReplayPage(props: {
   const selectedAuditSummary = selectedEvent ? buildSelectedAuditSummary(selectedAuditLogs) : '暂无审计记录'
   const selectedTaskChain = selectedEvent ? buildReplayTaskChain(selectedEvent, selectedTaskLifecycle) : []
   const selectedDualAgentReplay = selectedEvent ? buildDualAgentReplaySummary(selectedEvent) : null
+  const selectedCollaborationRecords = selectedDualAgentReplay
+    ? listDemoCollaborationRecords({
+        alert: selectedDualAgentReplay.alert,
+        review: selectedDualAgentReplay.review,
+        dispatch: selectedDualAgentReplay.dispatch,
+      })
+    : []
   const selectedReplayTimeline = selectedEvent
     ? buildReplayMonitoringTimeline(selectedEvent, selectedTaskLifecycle, selectedDemoFeedback, selectedAuditLogs, selectedDualAgentReplay)
     : replayStats.timeline
@@ -876,7 +884,12 @@ export function ReplayPage(props: {
                 <h4>{selectedDualAgentReplay.dispatch?.recommendedActionLabel ?? selectedActionDefinition?.label ?? '未生成派发建议'}</h4>
                 <p>{selectedDualAgentReplay.dispatch?.recommendedActionDescription ?? '派发建议仅用于复盘展示，不创建真实任务。'}</p>
                 <div className="replay-agent-chip-row">
-                  <span>主执行人：{selectedDualAgentReplay.dispatch ? getPrimaryAssignee(selectedDualAgentReplay.dispatch).staffName : selectedStaff?.displayName ?? '待定'}</span>
+                  <span>
+                    主执行人：
+                    {selectedDualAgentReplay.dispatch
+                      ? getPrimaryAssignee(selectedDualAgentReplay.dispatch)?.staffName ?? '待项目经理人工调度'
+                      : selectedStaff?.displayName ?? '待定'}
+                  </span>
                   <span>
                     备选：{selectedDualAgentReplay.dispatch ? getBackupAssignees(selectedDualAgentReplay.dispatch).slice(0, 2).map((staff) => staff.staffName).join(' / ') || '暂无' : '暂无'}
                   </span>
@@ -907,6 +920,29 @@ export function ReplayPage(props: {
                 </article>
               ))}
               {selectedDualAgentReplay.evidence.length === 0 ? <div className="empty-panel">暂无监控证据。</div> : null}
+            </div>
+
+            <div className="replay-collaboration-panel">
+              <div className="replay-section-head">
+                <div>
+                  <span>Agent 协作记录</span>
+                  <h3>信号、审核、建议、确认和反馈</h3>
+                </div>
+                <small>禁止自动执行</small>
+              </div>
+              <div className="replay-collaboration-grid">
+                {selectedCollaborationRecords.map((record) => (
+                  <article className="replay-collaboration-card" key={record.recordId}>
+                    <span>{record.timestampLabel}</span>
+                    <strong>{record.actor}</strong>
+                    <p>{record.outputSummary}</p>
+                    <small>
+                      {record.managerConfirmationRequired ? '需项目经理确认' : '无需确认'} /{' '}
+                      {record.forbiddenAutoExecution ? '禁止自动执行' : '允许自动执行'}
+                    </small>
+                  </article>
+                ))}
+              </div>
             </div>
           </section>
         ) : null}
@@ -1312,7 +1348,9 @@ function buildReplayAgentSteps(
       stepId: 'dispatch-agent',
       label: '派发建议 Agent',
       timestampLabel: formatReplayChainTime(item.task?.dispatched_at ?? item.event.timestamp),
-      detail: dispatch ? `${dispatch.recommendedActionLabel} / ${getPrimaryAssignee(dispatch).staffName}` : '等待派发建议',
+      detail: dispatch
+        ? `${dispatch.recommendedActionLabel} / ${getPrimaryAssignee(dispatch)?.staffName ?? '待项目经理人工调度'}`
+        : '等待派发建议',
       status: dispatch ? 'done' : 'pending',
     },
     {
@@ -1346,7 +1384,7 @@ function buildReplayMonitoringTimeline(
   const dispatch = dualAgentReplay?.dispatch ?? null
   const archiveTime = item.task?.completed_at ?? item.latest_feedback_at ?? auditLogs.at(-1)?.created_at ?? item.event.timestamp
   const dispatchAssigneeLabel = dispatch
-    ? getPrimaryAssignee(dispatch).staffName
+    ? getPrimaryAssignee(dispatch)?.staffName ?? '待项目经理人工调度'
     : staff?.displayName ?? item.assignee_name ?? item.event.recommended_assignee_id ?? '待定'
 
   return [

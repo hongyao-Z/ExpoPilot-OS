@@ -2,6 +2,7 @@ import type { LlmApi, LlmProviderConfig } from './agent-llm-types'
 import { getApiKey } from './agent-llm-key-store'
 
 export type LlmProviderId = 'anthropic' | 'openai' | 'openai-compatible'
+export type AgentKnowledgeSource = 'local' | 'rag_optional' | 'llm_optional'
 
 const DEFAULT_PROVIDER: LlmProviderId = 'anthropic'
 const DEFAULT_MAX_TOKENS = 4096
@@ -38,9 +39,23 @@ function readEnv(): Record<string, string | undefined> {
   return (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {}
 }
 
+function normalizeKnowledgeSource(value: string | undefined): AgentKnowledgeSource {
+  if (value === 'rag_optional' || value === 'llm_optional') return value
+  return 'local'
+}
+
+export function getAgentKnowledgeSource(): AgentKnowledgeSource {
+  return normalizeKnowledgeSource(readEnv().VITE_AGENT_KNOWLEDGE_SOURCE)
+}
+
+export function isAgentRagEnabled(): boolean {
+  const env = readEnv()
+  return env.VITE_AGENT_RAG_ENABLED === 'true' && getAgentKnowledgeSource() === 'rag_optional'
+}
+
 export function loadLlmConfig(): LlmProviderConfig | null {
   const env = readEnv()
-  if (env.VITE_AGENT_LLM_ENABLED === 'false') return null
+  if (env.VITE_AGENT_LLM_ENABLED !== 'true') return null
 
   const providerId = normalizeProvider(env.VITE_AGENT_LLM_PROVIDER)
   const apiKey = getApiKey(providerId)
@@ -66,12 +81,12 @@ export function loadLlmConfig(): LlmProviderConfig | null {
 
 export function isLlmDecisionEnabled(): boolean {
   const env = readEnv()
-  if (env.VITE_AGENT_LLM_ENABLED === 'false') return false
+  if (env.VITE_AGENT_LLM_ENABLED !== 'true') return false
   return env.VITE_AGENT_LLM_DECISION_ENABLED !== 'false'
 }
 
 export function isLlmExplanationEnabled(): boolean {
   const env = readEnv()
-  if (env.VITE_AGENT_LLM_ENABLED === 'false') return false
+  if (env.VITE_AGENT_LLM_ENABLED !== 'true') return false
   return env.VITE_AGENT_LLM_EXPLANATION_ENABLED !== 'false'
 }

@@ -4,6 +4,13 @@ import {
   type MonitoringAlertSeverity,
 } from './monitoring-alerts'
 import { getVenueEventDefinition } from './venue-event-types'
+import {
+  evaluateEvidenceQuality,
+  getEvidenceQualityLabel,
+  getEventOperationsKnowledge,
+  inferMissingEvidence,
+  type EvidenceQuality,
+} from './event-operations-knowledge'
 
 export type ReviewHandlingDecision = 'handle_required' | 'watch_required' | 'no_action_required'
 export type EventReviewRiskLevel = 'critical' | 'high' | 'medium' | 'low'
@@ -44,6 +51,10 @@ export interface EventReviewAgentDecision {
   riskLevel: EventReviewRiskLevel
   handlingDecision: ReviewHandlingDecision
   confidenceLabel: EventReviewConfidenceLabel
+  evidenceQuality: EvidenceQuality
+  missingEvidence: readonly string[]
+  professionalRiskNote: string
+  managerReviewChecklist: readonly string[]
   managerAttentionRequired: boolean
   finding: EventReviewAgentFinding
 }
@@ -55,7 +66,11 @@ const severityToRisk: Record<MonitoringAlertSeverity, EventReviewRiskLevel> = {
   low: 'low',
 }
 
-function getHandlingDecision(alert: MonitoringAlert): ReviewHandlingDecision {
+function getHandlingDecision(alert: MonitoringAlert, evidenceQuality: EvidenceQuality): ReviewHandlingDecision {
+  if (evidenceQuality === 'weak') {
+    return 'watch_required'
+  }
+
   if (alert.managerAttentionRequired || alert.severity === 'critical' || alert.severity === 'high') {
     return 'handle_required'
   }
@@ -67,9 +82,16 @@ function getHandlingDecision(alert: MonitoringAlert): ReviewHandlingDecision {
   return 'no_action_required'
 }
 
+function getAverageConfidence(alert: MonitoringAlert) {
+  if (alert.evidence.length === 0) {
+    return 0
+  }
+
+  return alert.evidence.reduce((total, evidence) => total + evidence.confidence, 0) / alert.evidence.length
+}
+
 function getConfidenceLabel(alert: MonitoringAlert): EventReviewConfidenceLabel {
-  const averageConfidence =
-    alert.evidence.reduce((total, evidence) => total + evidence.confidence, 0) / alert.evidence.length
+  const averageConfidence = getAverageConfidence(alert)
 
   if (averageConfidence >= 0.85) {
     return 'high_confidence'
@@ -82,28 +104,57 @@ function getConfidenceLabel(alert: MonitoringAlert): EventReviewConfidenceLabel 
   return 'low_confidence'
 }
 
+function getProfessionalRiskNote(alert: MonitoringAlert, evidenceQuality: EvidenceQuality) {
+  const knowledge = getEventOperationsKnowledge(alert.eventType)
+
+  if (evidenceQuality === 'weak') {
+    return `${knowledge.professionalLabel}证据不足，建议项目经理先人工复核，不创建任务。`
+  }
+
+  if (alert.severity === 'critical' || alert.severity === 'high') {
+    return `${knowledge.professionalLabel}已触发高优先级处置条件：${
+      knowledge.riskEscalationRules[0] ?? '现场风险上升'
+    }。`
+  }
+
+  return `${knowledge.professionalLabel}需要结合现场证据持续判断：${knowledge.riskSignals
+    .slice(0, 2)
+    .join('、')}。`
+}
+
 function buildWhatHappened(alert: MonitoringAlert) {
   const definition = getVenueEventDefinition(alert.eventType)
 
-  return `${alert.zoneName}触发了${alert.eventLabel}：${definition.description}`
+  return `${alert.zoneName}触发 ${alert.eventLabel}，${definition.description}`
 }
 
-function buildEvidenceSummary(alert: MonitoringAlert) {
-  const labels = alert.evidence.map((evidence) => evidence.label).join(', ')
+function buildEvidenceSummary(alert: MonitoringAlert, evidenceQuality: EvidenceQuality) {
+  const labels = alert.evidence.map((evidence) => evidence.label).join('、')
 
-  return `${alert.sourceName}提供了 ${alert.evidence.length} 条证据：${labels}。`
+  return `${alert.sourceName} 提供 ${alert.evidence.length} 条证据：${labels}。证据质量：${getEvidenceQualityLabel(
+    evidenceQuality,
+  )}。`
 }
 
 export function reviewMonitoringAlert(alert: MonitoringAlert): EventReviewAgentDecision {
+  const knowledge = getEventOperationsKnowledge(alert.eventType)
+  const averageConfidence = getAverageConfidence(alert)
+  const evidenceQuality = evaluateEvidenceQuality({
+    evidenceCount: alert.evidence.length,
+    averageConfidence,
+    requiredEvidenceCount: Math.min(knowledge.evidenceRequirements.length, 3),
+  })
+  const missingEvidence = inferMissingEvidence(knowledge, alert.evidence.length)
   const riskLevel = severityToRisk[alert.severity]
-  const handlingDecision = getHandlingDecision(alert)
   const confidenceLabel = getConfidenceLabel(alert)
+  const handlingDecision = getHandlingDecision(alert, evidenceQuality)
+  const professionalRiskNote = getProfessionalRiskNote(alert, evidenceQuality)
 
   const finding: EventReviewAgentFinding = {
     findingId: `finding-${alert.alertId}`,
     title: alert.title,
     whatHappened: buildWhatHappened(alert),
-    evidenceSummary: buildEvidenceSummary(alert),
+    evidenceSummary: buildEvidenceSummary(alert, evidenceQuality),
     riskLevel,
     handlingDecision,
     confidenceLabel,
@@ -124,6 +175,10 @@ export function reviewMonitoringAlert(alert: MonitoringAlert): EventReviewAgentD
     riskLevel,
     handlingDecision,
     confidenceLabel,
+    evidenceQuality,
+    missingEvidence,
+    professionalRiskNote,
+    managerReviewChecklist: knowledge.managerChecklist,
     managerAttentionRequired: alert.managerAttentionRequired,
     finding,
   }
@@ -155,5 +210,7 @@ export function getReviewDecisionSummary(review: EventReviewAgentDecision) {
     no_action_required: '无需处理',
   }
 
-  return `${getReviewRiskLabel(review.riskLevel)} / ${handlingLabels[review.handlingDecision]} / ${review.finding.evidence.length} 条证据`
+  return `${getReviewRiskLabel(review.riskLevel)} / ${handlingLabels[review.handlingDecision]} / ${
+    review.finding.evidence.length
+  } 条证据`
 }

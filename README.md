@@ -110,3 +110,29 @@ Stage 5 uses a fixed 09:55-10:40 demonstration scenario:
 EventReviewAgent and DispatchAgent are local deterministic demo models. They do not call a real LLM, do not execute tasks, and do not bypass project manager confirmation.
 
 OpenClaw remains explanation source only. It only fills `why_event`, `why_action`, `why_assignee`, and `why_state`; it is not the decision source or executor and does not bypass risk, audit, takeover, or rollback.
+
+## Agent Knowledge Architecture
+
+ExpoPilot OS now includes a local event-operations knowledge layer for demo stability:
+
+| Module | Purpose |
+|---|---|
+| `src/lib/event-operations-knowledge.ts` | Local professional knowledge for event evidence, escalation rules, recommended actions, forbidden actions, roles, manager checklist, staff instructions, and replay summary templates |
+| `src/lib/event-review-agent.ts` | Rule-based EventReviewAgent; reviews event evidence, risk, missing evidence, and manager checklist |
+| `src/lib/dispatch-agent.ts` | Rule-based DispatchAgent; recommends action, primary assignee, backup assignee, candidate score, fallback action, and dispatch checklist |
+| `src/lib/agent-collaboration-model.ts` | Collaboration record model for signal, review, dispatch, manager confirmation, staff feedback, and replay reporting |
+
+Agent boundaries:
+
+- EventReviewAgent does not recommend assignees.
+- DispatchAgent does not create tasks and does not change task state.
+- Project manager confirmation remains mandatory.
+- LLM/RAG is optional and disabled by default:
+
+```env
+VITE_AGENT_KNOWLEDGE_SOURCE=local
+VITE_AGENT_LLM_ENABLED=false
+VITE_AGENT_RAG_ENABLED=false
+```
+
+Local camera input can support a local demo path, but production-grade multi-camera deployment is outside the current demo scope.

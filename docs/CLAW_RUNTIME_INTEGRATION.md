@@ -164,3 +164,23 @@ That restraint is intentional:
 - folding execution into the same adapter would blur responsibilities and break the current baseline
 
 For now, Claw runtime should remain a narrow explanation provider.
+
+## Agent Knowledge Boundary
+
+ExpoPilot now separates three layers:
+
+| Layer | Role | Boundary |
+|---|---|---|
+| Local operations knowledge | Provides event evidence, escalation rules, recommended actions, forbidden actions, roles, manager checklist, and staff instructions | Default source, works offline |
+| EventReviewAgent | Reviews what happened, whether evidence is sufficient, risk level, uncertainty, and manager checklist | Does not recommend assignee, does not create task |
+| DispatchAgent | Recommends action, primary assignee, backup assignee, candidate score, fallback action, and dispatch checklist | Does not create task, does not change task state |
+
+Optional LLM/RAG switches are off by default:
+
+```env
+VITE_AGENT_KNOWLEDGE_SOURCE=local
+VITE_AGENT_LLM_ENABLED=false
+VITE_AGENT_RAG_ENABLED=false
+```
+
+If `rag_optional` or `llm_optional` is enabled later, generated text must still pass local guards. LLM output cannot create tasks, skip manager confirmation, overwrite risk/audit/takeover/rollback, or become an executor.

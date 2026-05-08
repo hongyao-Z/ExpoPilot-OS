@@ -48,3 +48,11 @@ ExpoPilot OS 当前登录页用于演示入口，不是生产级账号系统。
 | Agent 能自动派单吗？ | 不能。DispatchAgent 只给建议，必须由项目经理确认。 |
 | OpenClaw 负责决策吗？ | 不负责。OpenClaw 只提供解释文本。 |
 
+## Agent 与登录演示边界补充
+
+| 问题 | 回答 |
+|---|---|
+| Agent 是否能自动派发任务？ | 不能。EventReviewAgent 只审核异常和证据，DispatchAgent 只给派发建议，项目经理确认后才进入任务状态展示。 |
+| Agent 的专业知识从哪里来？ | 默认来自本地结构化会展运营知识层，覆盖入口拥堵、队列增长、消防通道占用、设备异常、人员不足、任务超时、误报等场景。 |
+| LLM/RAG 是否参与演示？ | 默认关闭。`VITE_AGENT_LLM_ENABLED=false`，`VITE_AGENT_RAG_ENABLED=false`。本地 demo 离线可运行。 |
+| OpenClaw 是否负责决策？ | 不负责。OpenClaw 仍只作为 explanation source，不是主决策源，也不是执行器。 |

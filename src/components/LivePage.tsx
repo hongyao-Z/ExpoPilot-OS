@@ -1101,6 +1101,18 @@ export function LivePage(props: {
                       <span key={evidence.evidenceId}>{evidence.label} / {Math.round(evidence.confidence * 100)}%</span>
                     )) ?? <span>无证据</span>}
                   </div>
+                  {agentPanelView.review ? (
+                    <div className="live-agent-professional-list">
+                      <span>专业判断：{agentPanelView.review.professionalRiskNote}</span>
+                      <span>
+                        缺失证据：
+                        {agentPanelView.review.missingEvidence.length > 0
+                          ? agentPanelView.review.missingEvidence.slice(0, 2).join('、')
+                          : '当前证据满足 demo 审核'}
+                      </span>
+                      <span>确认清单：{agentPanelView.review.managerReviewChecklist.slice(0, 2).join(' / ')}</span>
+                    </div>
+                  ) : null}
                   <small>{agentPanelView.review ? reviewHandlingDecisionLabel[agentPanelView.review.handlingDecision] : agentPanelView.reviewSummary}</small>
                 </article>
 
@@ -1120,6 +1132,19 @@ export function LivePage(props: {
                       <span key={reason.reasonCode}>{reason.label}</span>
                     )) ?? <span>无派发依据</span>}
                   </div>
+                  {agentPanelView.dispatch ? (
+                    <div className="live-agent-professional-list">
+                      <span>
+                        候选评分：
+                        {agentPanelView.dispatch.primaryAssignee?.candidateScore.total ?? '待人工调度'}
+                      </span>
+                      <span>备选方案：{agentPanelView.dispatch.fallbackAction}</span>
+                      <span>确认清单：{agentPanelView.dispatch.dispatchChecklist.slice(0, 2).join(' / ')}</span>
+                      <span className="live-agent-boundary-note">
+                        禁止自动派发：Agent 只建议，项目经理确认后才进入任务状态。
+                      </span>
+                    </div>
+                  ) : null}
                 </article>
               </div>
 
