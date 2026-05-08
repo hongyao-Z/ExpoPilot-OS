@@ -19,3 +19,4 @@ scripts/temp_frames/
 scripts/vision_recordings/
 scripts/analyze-frames*.py
 scripts/build-ppt.py
+*.pt
