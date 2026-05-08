@@ -1,17 +1,8 @@
 node_modules
 dist
-.DS_Store
+.git
+*.md
 .env
-.env.*
-*.local
-*.log
-preview*.png
-preview*.log
-preview*.err.log
-vite-dev*.log
-vite-dev*.err.log
-.codex-long-runner
-server/state/demo-db.json
 output/
 scripts/__pycache__/
 scripts/temp_*
@@ -19,3 +10,4 @@ scripts/temp_frames/
 scripts/vision_recordings/
 scripts/analyze-frames*.py
 scripts/build-ppt.py
+server/state/demo-db.json

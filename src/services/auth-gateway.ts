@@ -50,24 +50,28 @@ function now() {
   return new Date().toISOString()
 }
 
+function buildSandboxSession(input: LoginInput): AuthSession {
+  return {
+    session_id: `session-${Date.now()}`,
+    role: input.role,
+    displayName: input.displayName,
+    email: input.email,
+    declared_role: input.role,
+    organization_label: input.organization_label,
+    login_at: now(),
+    login_mode: 'sandbox-auth-gateway',
+    staffId: input.staffId,
+    orgId: input.orgId,
+    permission: permissionForRole(input.role, input.orgId, input.staffId),
+  }
+}
+
 export const localAuthGateway: AuthGateway = {
   descriptor: {
     provider: 'local-auth-mock',
     mode: 'sandbox-login',
   },
   signIn(input: LoginInput): AuthSession {
-    return {
-      session_id: `session-${Date.now()}`,
-      role: input.role,
-      displayName: input.displayName,
-      email: input.email,
-      declared_role: input.role,
-      organization_label: input.organization_label,
-      login_at: now(),
-      login_mode: 'sandbox-auth-gateway',
-      staffId: input.staffId,
-      orgId: input.orgId,
-      permission: permissionForRole(input.role, input.orgId, input.staffId),
-    }
+    return buildSandboxSession(input)
   },
 }

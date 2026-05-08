@@ -214,10 +214,10 @@ function App() {
     window.location.hash = toHash(next)
   }
 
-  function loginAs(credentials: FormData, role: RoleType) {
+  async function loginAs(credentials: FormData, role: RoleType) {
     const profile = roleProfiles.find((item) => item.role === role)
     if (!profile) return
-    const nextSession: Session = localAuthGateway.signIn({
+    const nextSession: Session = await localAuthGateway.signIn({
       email: String(credentials.get('email') || '').trim() || 'pilot@expopilot.cn',
       password: String(credentials.get('password') || '').trim() || 'ExpoPilot2026',
       role: profile.role,
@@ -836,7 +836,6 @@ function decorateCameraEventItems(snapshot: ExpoPilotSnapshot, items: EventOpera
 }
 
 export default App
-
 
 
 

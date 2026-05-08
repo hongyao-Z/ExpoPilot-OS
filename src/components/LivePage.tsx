@@ -35,6 +35,7 @@ import { adaptVisionMetricsToBoothHeatup, adaptVisionMetricsToEntranceCongestion
 import { buildVisionMetricsTimeline, type VisionMetricsFrame } from '../lib/vision-metrics'
 import { createTrackingReplayTracker } from '../lib/vision-tracker'
 import type { VisionDetectionReplayPayload, VisionEventCandidate, VisionTrackingReplayPayload, VisionZoneHint } from '../lib/vision-types'
+import { checkLiveVisionHealth, createLiveVisionSource } from '../lib/vision-live-source'
 import { getDispatchableStaffForZoneType, getStaffingSummaryByZoneType, type StaffPoolMember } from '../lib/staff-pool'
 import { getFeedbackStatusLabel, getFeedbackSummary, getLatestFeedbackByTaskId } from '../lib/staff-feedback'
 import { getPriorityLabel, getPriorityQueueSummary, listPriorityQueueItems } from '../lib/priority-queue'
@@ -474,6 +475,7 @@ export function LivePage(props: {
   const [agentDecision, setAgentDecision] = useState<AgentDecision | null>(null)
   const [visionReplayStatus, setVisionReplayStatus] = useState<VisionReplayStatus>('idle')
   const [visionReplayError, setVisionReplayError] = useState<string>()
+  const [liveVisionActive, setLiveVisionActive] = useState(false)
   const [detectionPayload, setDetectionPayload] = useState<VisionDetectionReplayPayload | null>(null)
   const [trackingPayload, setTrackingPayload] = useState<VisionTrackingReplayPayload | null>(null)
   const [metricsTimeline, setMetricsTimeline] = useState<VisionMetricsFrame[]>([])
@@ -733,9 +735,43 @@ export function LivePage(props: {
   }, [auditScope, derivedAuditRecords])
 
   const handleReplayCameraSignal = () => {
+    setLiveVisionActive(false)
     props.onReplayCameraSignal({ zoneType: activeVisionZoneType })
     void loadVisionReplayData()
   }
+
+  const handleConnectLiveCamera = async () => {
+    const health = await checkLiveVisionHealth()
+    if (!health) {
+      setVisionReplayStatus('error')
+      setVisionReplayError('实时视觉服务未运行。请先启动: python scripts/live-vision-server.py')
+      return
+    }
+    setLiveVisionActive(true)
+    setVisionReplayStatus('loading')
+    setMetricsTimeline([])
+    setTrackingPayload(null)
+    props.onConnectLiveCamera({ zoneType: activeVisionZoneType })
+  }
+
+  useEffect(() => {
+    if (!liveVisionActive) return
+
+    const source = createLiveVisionSource()
+    const timer = setInterval(async () => {
+      const frame = await source.fetchLatest()
+      if (frame) {
+        setMetricsTimeline((prev) => {
+          const next = [...prev, frame]
+          return next.length > 300 ? next.slice(-300) : next
+        })
+        setVisionReplayStatus('ready')
+        setDebugFrameIndex((prev) => prev + 1)
+      }
+    }, 200)
+
+    return () => clearInterval(timer)
+  }, [liveVisionActive])
 
   const handleAgentPrimaryAction = () => {
     if (!agentDecision) {
@@ -917,7 +953,7 @@ export function LivePage(props: {
             <div className="inline-actions">
               <button onClick={props.onSimulateSignal}>触发 mock 事件</button>
               <button onClick={handleReplayCameraSignal}>回放当前摄像头</button>
-              <button onClick={() => props.onConnectLiveCamera({ zoneType: activeVisionZoneType })}>接入实时摄像头</button>
+              <button onClick={handleConnectLiveCamera}>接入实时摄像头</button>
               <button className="ghost-button" onClick={props.onReset}>
                 重置快照
               </button>
@@ -1263,13 +1299,21 @@ export function LivePage(props: {
             <div>
               <h3>视觉输入与回放</h3>
               <p className="helper-line" style={{ margin: '6px 0 0' }}>
-                当前以离线摄像头回放驱动视觉指标和事件候选。
+{liveVisionActive ? '实时摄像头接入中，持续更新视觉指标。' : '当前以离线摄像头回放驱动视觉指标和事件候选。'}
               </p>
             </div>
             <span className="status-pill">{activeVisionZoneType === 'booth' ? '展台摄像头' : '入口摄像头'}</span>
           </div>
           <div className="live-monitor-viewport">
-            <div className="live-monitor-gridline" />
+            {liveVisionActive ? (
+              <img
+                src="http://127.0.0.1:8765/stream"
+                alt="实时摄像头画面"
+                style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: '6px' }}
+              />
+            ) : (
+              <div className="live-monitor-gridline" />
+            )}
             <div className="live-monitor-stage">
               <span>{activeVisionZoneType === 'booth' ? '展台 A' : '入口 A'}</span>
               <strong>{activeVisionEventLabel}</strong>

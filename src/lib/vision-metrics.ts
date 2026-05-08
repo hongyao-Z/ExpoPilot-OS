@@ -10,6 +10,7 @@ export interface VisionMetricsFrame {
   spillover: boolean
   dwellCount: number
   lingerRatio: number
+  visualDescription?: string
   activeTrackIds: string[]
   slowTrackIds: string[]
   spilloverTrackIds: string[]

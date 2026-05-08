@@ -9,6 +9,9 @@ export interface LiveVisionSource {
   descriptor: LiveVisionSourceDescriptor
   fetchLatest: () => Promise<VisionMetricsFrame | null>
   fetchTimeline: (maxFrames?: number) => Promise<VisionMetricsFrame[]>
+  fetchLatestFrame: () => Promise<ArrayBuffer | null>
+  getStreamUrl: () => string
+  getFrameUrl: () => string
 }
 
 const DEFAULT_URL = 'http://127.0.0.1:8765'
@@ -21,6 +24,9 @@ export function createLiveVisionSource(url = DEFAULT_URL): LiveVisionSource {
     descriptor: { provider: 'live-opencv-server', url },
     fetchLatest: () => fetchLatestMetrics(url),
     fetchTimeline: (maxFrames = DEFAULT_MAX_FRAMES) => fetchMetricsTimeline(url, maxFrames),
+    fetchLatestFrame: () => fetchLatestFrame(url),
+    getStreamUrl: () => `${url}/stream`,
+    getFrameUrl: () => `${url}/frame`,
   }
 }
 
@@ -41,8 +47,17 @@ async function fetchLatestMetrics(url: string): Promise<VisionMetricsFrame | nul
 async function fetchMetricsTimeline(url: string, maxFrames: number): Promise<VisionMetricsFrame[]> {
   const latest = await fetchLatestMetrics(url)
   if (!latest) return timelineBuffer.slice(-maxFrames)
-
   return timelineBuffer.slice(-maxFrames)
+}
+
+async function fetchLatestFrame(url: string): Promise<ArrayBuffer | null> {
+  try {
+    const response = await fetch(`${url}/frame`)
+    if (!response.ok) return null
+    return response.arrayBuffer()
+  } catch {
+    return null
+  }
 }
 
 export function clearLiveTimeline(): void {

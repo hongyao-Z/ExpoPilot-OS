@@ -33,6 +33,7 @@ export interface ClawExplanationRequest {
   sourceModeLabel: string
   triggerPoints: string[]
   slots: ['why_event', 'why_action', 'why_assignee', 'why_state']
+  visualDescription?: string
 }
 
 export type ClawExplanationOutput = AgentExplanationSet

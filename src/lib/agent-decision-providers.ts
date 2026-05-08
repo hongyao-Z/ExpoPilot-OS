@@ -99,9 +99,79 @@ export async function buildMockAgentDecision(
   })
 }
 
-export function buildRemoteAgentPlaceholderDecision(context: AgentContext): AgentDecisionBase {
-  void context
-  throw new Error('remote_agent_placeholder 当前未接入真实远端决策服务。')
+export async function buildRemoteAgentPlaceholderDecision(context: AgentContext): Promise<AgentDecisionBase> {
+  if (!canUseLocalRemoteAgent()) {
+    throw new Error('remote_agent_placeholder 仅在本机演示环境启用。')
+  }
+
+  const focusEvent = context.focusEvent
+  const decisionUrl = 'http://127.0.0.1:8010/decisions'
+
+  const requestBody = {
+    contextId: ['context', context.projectId ?? 'no-project', focusEvent?.event.event_id ?? 'no-event', context.priorityLabel || 'no-priority'].join(':'),
+    eventType: focusEvent?.event.event_type,
+    state: deriveLifecycleState(focusEvent),
+    mode: context.mode,
+    eventLabel: focusEvent?.event.title ?? '当前无重点事件',
+    actionLabel: focusEvent?.task?.action_summary ?? focusEvent?.event.recommended_action ?? '等待生成建议',
+    assigneeLabel: focusEvent?.assignee_name ?? focusEvent?.event.recommended_assignee_id ?? '等待推荐执行人',
+    sourceModeLabel: sourceModeLabelFromValue(focusEvent?.source_mode ?? 'unknown'),
+    zoneLabel: context.focusZoneLabel ?? context.priorityLabel ?? 'unknown',
+    triggerPoints: focusEvent?.trigger_points ?? [],
+  }
+
+  const response = await fetch(decisionUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+    signal: AbortSignal.timeout(90000),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Remote decision agent returned ${response.status}`)
+  }
+
+  const remote = await response.json()
+
+  return createDecisionBase(context, {
+    producer: 'remote_agent_placeholder',
+    state: remote.state,
+    primaryActionLabel: remote.primaryActionLabel,
+    confidence: remote.confidence,
+    requiresApproval: remote.requiresApproval,
+    statusSummary: remote.statusSummary,
+    explanations: {
+      why_event: remote.why_event,
+      why_action: remote.why_action,
+      why_assignee: remote.why_assignee,
+      why_state: remote.why_state,
+    },
+    explanationSource: 'remote_claw_placeholder',
+    explanationIsFallback: false,
+    logs: buildLogs(context.focusEvent, remote.state),
+    producerMeta: {
+      origin: 'direct',
+      providerLabel: 'Remote Agent (OpenClaw)',
+      notes: '远端 Agent 通过 OpenClaw Adapter 实时生成决策。',
+    },
+  })
+}
+
+function sourceModeLabelFromValue(mode: string | undefined) {
+  switch (mode) {
+    case 'realtime': return '实时输入'
+    case 'recorded': return '预录输入'
+    case 'manual': return '人工输入'
+    case 'sandbox': return '模拟输入'
+    case 'mixed': return '混合输入'
+    case 'camera': return '摄像头感知'
+    default: return '未知输入'
+  }
+}
+
+function canUseLocalRemoteAgent() {
+  if (typeof window === 'undefined') return false
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
 }
 
 async function resolveRemotePlaceholderDecision(
@@ -109,7 +179,7 @@ async function resolveRemotePlaceholderDecision(
   preferredExplanationSource: AgentExplanationSourceKey,
 ): Promise<AgentDecisionBase> {
   try {
-    return buildRemoteAgentPlaceholderDecision(context)
+    return await buildRemoteAgentPlaceholderDecision(context)
   } catch (remoteError) {
     const remoteReason = toErrorMessage(remoteError)
 
@@ -117,14 +187,14 @@ async function resolveRemotePlaceholderDecision(
       return attachFallbackMetadata(
         await buildMockAgentDecision(context, preferredExplanationSource),
         'remote_agent_placeholder',
-        `remote_agent_placeholder 当前未接入真实远端，因此已回退到 mock_agent：${remoteReason}`,
+        `远端 Agent 调用失败，回退到 mock_agent：${remoteReason}`,
       )
     } catch (mockError) {
       const mockReason = toErrorMessage(mockError)
       return attachFallbackMetadata(
         await buildLocalRuleBasedDecision(context, preferredExplanationSource),
         'remote_agent_placeholder',
-        `remote_agent_placeholder 当前未接入真实远端，且 mock_agent 构建失败，因此已回退到 local_rule_based：${remoteReason}；mock_agent 失败原因：${mockReason}`,
+        `远端 Agent 调用失败，且 mock_agent 构建失败，回退到 local_rule_based：${remoteReason}；mock_agent 失败原因：${mockReason}`,
       )
     }
   }
