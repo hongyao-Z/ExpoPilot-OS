@@ -4,7 +4,7 @@
 
 把 ExpoPilot OS 部署到国内可访问的 HTTPS 域名，供展会现场电脑和手机扫码使用。
 
-推荐目标域名：
+推荐目标地址：
 
 ```text
 https://expopilot.cn/
@@ -13,11 +13,11 @@ https://expopilot.cn/#/mobile
 
 ## 推荐方案
 
-| 方案 | 适合程度 | 说明 |
+| 方案 | 推荐度 | 说明 |
 |---|---|---|
 | 腾讯云 EdgeOne Pages / 静态站点托管 | 推荐 | 静态前端部署简单，HTTPS 配置少 |
-| 腾讯云轻量服务器 + Nginx | 可选 | 可控性高，但需要维护服务器 |
-| GitHub Pages + 自定义域名 | 不推荐作为主链路 | 国内访问不稳定 |
+| 腾讯云轻量应用服务器 + Nginx | 可选 | 可控性高，但需要维护服务器 |
+| GitHub Pages + 自定义域名 | 不建议作为主线路 | 国内访问不稳定，可作为备用 |
 
 ## 部署包生成
 
@@ -49,13 +49,13 @@ output/release/
   expopilot-os-static-YYYYMMDD-HHMMSS.zip
 ```
 
-上传国内平台时，上传 `dist` 目录内容或上传 `output/release` 里的 zip。
+国内平台可以上传 `dist` 目录内容，也可以上传 `output/release` 里的 zip。
 
 ## HTTPS 与域名
 
-域名购买完成后，不要购买付费 SSL。优先使用部署平台自动签发的免费 HTTPS 证书。
+域名购买完成后，不要优先购买付费 SSL。演示站点使用部署平台自动签发的免费 HTTPS 证书即可。
 
-DNS 解析通常只需要二选一：
+DNS 解析通常二选一：
 
 | 记录类型 | 用途 |
 |---|---|
@@ -64,7 +64,7 @@ DNS 解析通常只需要二选一：
 
 ## SPA 路由要求
 
-本项目使用 Hash 路由：
+项目使用 Hash 路由：
 
 ```text
 /#/login
@@ -73,7 +73,7 @@ DNS 解析通常只需要二选一：
 /#/project/project-spring-2026/replay
 ```
 
-Hash 路由对静态部署友好，一般不需要额外 rewrite。Nginx 兜底配置仍建议保留：
+Hash 路由对静态部署友好，一般不需要额外 rewrite。Nginx 仍建议保留：
 
 ```nginx
 try_files $uri $uri/ /index.html;

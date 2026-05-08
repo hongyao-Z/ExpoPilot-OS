@@ -11,6 +11,7 @@
     "test:state": "node ./scripts/test-state-machine.mjs",
     "test:contract": "node ./scripts/check-contract.mjs",
     "test:agent": "node ./server/eval/run-eval.mjs",
+    "test:demo-readiness": "node ./scripts/check-demo-readiness.mjs",
     "server:demo": "node ./server/index.mjs",
     "test:ui": "node --experimental-strip-types ./scripts/test-ui-services.mts",
     "release:demo": "npm run build && node ./scripts/prepare-demo-release.mjs",
