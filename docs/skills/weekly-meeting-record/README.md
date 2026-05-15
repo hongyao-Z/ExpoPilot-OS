@@ -1,15 +1,137 @@
-﻿# Weekly Meeting Record Skill
+# 通用会议记录 Skill
 
-This folder contains a reusable skill for turning meeting transcripts into formal Chinese Word meeting records.
+这是一个把会议录音、转写稿、速记内容整理成正式中文会议记录的通用 skill。
 
-Contents:
-- `SKILL.md`: workflow and prompting rules
-- `references/style-guide.md`: structure, tone, and formatting guide
-- `assets/sample_input.json`: neutral sample payload
-- `scripts/create_meeting_record.py`: generate `.docx`
-- `scripts/convert_docx_to_pdf.ps1`: export approved `.docx` to `.pdf`
+它的目标不是“简单润色转写稿”，而是把原始素材整理成一份可审核、可归档、可继续导出 PDF 的 Word 会议记录。
 
-Notes:
-- Personal names are not hardcoded into the reusable skill.
-- Names and attendance fields should be provided at runtime, or left as `待确认` in a first-pass draft.
-- The Word layout uses a real table structure and fixed typography tuned for recurring student-organization meeting records.
+## 适用场景
+
+适合这些任务：
+
+- 周会、例会、部门会、学生组织会议记录
+- 用户提供录音和转写稿，要求整理成正式稿
+- 用户要求“先出 Word，审核通过后再转 PDF”
+- 用户已经有过审样本，希望后续统一沿用同一风格
+
+## 核心能力
+
+这个 skill 默认完成四件事：
+
+1. 从原始素材中抽取固定字段  
+包括会议标题、日期、时间、地点、请假/迟到/旷会、主持人、记录人。
+
+2. 对会议内容进行分组整理  
+常见板块包括：
+- 项目组工作
+- 基层组工作
+- 考评组工作
+- 其他工作
+
+3. 将口语化转写改写为正式书面记录  
+保留时间、对象、动作、要求，删除口头语、重复和情绪化表达。
+
+4. 生成结构化 Word 文件  
+使用真实 Word 表格承载基础信息和正文，便于后续审核与 PDF 导出。
+
+## 工作逻辑
+
+这个 skill 按下面的顺序工作：
+
+1. 优先读取转写稿  
+如果同时有录音和转写稿，以转写稿为主，录音只用于核对模糊内容。
+
+2. 先补全关键信息，再出稿  
+如果会议期次、考勤、主持人、记录人等信息缺失，优先要求用户补全。
+
+3. 如果用户要求先看初稿  
+允许用 `待确认` 占位，但必须把待补全项明确列出来。
+
+4. 根据事项属性分组  
+不是按说话顺序切段，而是按工作类型分组。
+
+5. 生成 `.docx` 初稿  
+审核通过后，再导出 `.pdf`。
+
+## 人名与隐私处理
+
+这是当前版本新增的硬规则：
+
+- skill 内不再写死任何具体姓名
+- 请假 / 迟到 / 旷会 / 主持人 / 记录人 / 正文负责人都视为运行时输入
+- 如果用户没有给全，人名信息必须先补全，或在初稿里标为 `待确认`
+- 不能把历史会议里的姓名自动沿用到新会议
+
+## 输出格式
+
+默认输出为 Word 文档，结构如下：
+
+1. 标题单独居中
+2. 标题下方是一整张 Word 表格
+3. 表格内依次放：
+- 时间 / 地点
+- 请假人员
+- 迟到人员
+- 旷会人员
+- 主持人 / 记录人
+- `会议内容`
+- 正文内容
+
+正文部分包含：
+
+- `开始时间：HH:MM`
+- 分组后的工作事项
+- `结束时间：HH:MM`
+
+## 排版规则
+
+当前脚本默认使用固定版式：
+
+- 标题：`方正小标宋简体`，18pt，加粗，居中
+- 表格标签：`方正小标宋简体`，12pt
+- 表格内容：`宋体`，12pt
+- 正文小标题：`宋体`，12pt，加粗
+- 正文内容：`宋体`，12pt
+
+页边距默认贴近常见正式会议记录版式。
+
+## 文件结构
+
+- `SKILL.md`
+作用：skill 主说明，定义调用场景、工作流、补全规则、分组规则和排版要求
+
+- `references/style-guide.md`
+作用：补充风格、结构和格式规则
+
+- `assets/sample_input.json`
+作用：中性的输入示例，用于说明脚本接收的数据结构
+
+- `scripts/create_meeting_record.py`
+作用：根据结构化 JSON 生成 `.docx`
+
+- `scripts/convert_docx_to_pdf.ps1`
+作用：在 Word 初稿确认后导出 `.pdf`
+
+## 推荐使用方式
+
+推荐按这个流程使用：
+
+1. 给 skill 一份录音或转写稿
+2. 补全会议期次、考勤、主持人、记录人等关键信息
+3. 先生成 Word 初稿
+4. 审核修改
+5. 审核通过后导出 PDF
+
+## 示例
+
+示例请求：
+
+“这是今天例会的录音和转写稿，按之前过审版的风格整理成会议记录。先给我 Word 初稿，缺的考勤和主持信息先列出来让我补。”
+
+## 备注
+
+这个 skill 目前更偏向“固定格式的正式会议记录生成”，而不是开放式摘要。
+
+如果后续需要，也可以继续拆分出两个版本：
+
+- 通用会议记录版
+- 某个组织专用版
